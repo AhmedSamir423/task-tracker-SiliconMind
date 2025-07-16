@@ -1,6 +1,5 @@
 # Task Tracker API Contract
 
-This document defines the REST API endpoints for the Task Tracker application, specifying request/response formats and authentication requirements.
 
 ## Authentication
 
