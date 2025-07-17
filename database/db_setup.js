@@ -1,12 +1,12 @@
 const { Sequelize } = require('sequelize');
 
-// Configure Sequelize with database credentials
+//this file is just for testing the connection to the database
 const sequelize = new Sequelize('postgres://task_user:taskpass@localhost:5432/task_tracker', {
   dialect: 'postgres',
-  logging: false, // Set to true to see SQL queries for debugging
+  logging: false,
 });
 
-// Test the connection
+
 async function testConnection() {
   try {
     await sequelize.authenticate();
