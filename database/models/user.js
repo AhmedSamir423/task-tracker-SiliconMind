@@ -18,5 +18,6 @@ const User = sequelize.define('User', {
 }, {
   timestamps: false, // Disable createdAt and updatedAt
 });
+User.hasMany(Task, { foreignKey: 'user_id' });
 
 module.exports = User;
