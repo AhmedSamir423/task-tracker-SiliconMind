@@ -1,0 +1,31 @@
+{
+  "name": "task-tracker-siliconmind",
+  "version": "1.0.0",
+  "description": "A full-stack Task Tracker application that allows users to manage tasks, track time, and monitor progress.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AhmedSamir423/task-tracker-SiliconMind.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AhmedSamir423/task-tracker-SiliconMind/issues"
+  },
+  "homepage": "https://github.com/AhmedSamir423/task-tracker-SiliconMind#readme",
+  "dependencies": {
+    "dotenv": "^17.2.0",
+    "pg": "^8.16.3",
+    "sequelize": "^6.37.7"
+  },
+  "devDependencies": {
+    "sequelize-cli": "^6.6.3"
+  }
+}
