@@ -1,4 +1,3 @@
-const { Sequelize, DataTypes } = require('sequelize');
 const sequelize = require('../database'); 
 const User = require('./user'); 
 
@@ -17,7 +16,7 @@ const Task = sequelize.define('Task', {
     },
   },
   estimate: {
-    type: DataTypes.INTEGER, // Hours
+    type: DataTypes.FLOAT, // Hours
     allowNull: false,
   },
   status: {
@@ -44,7 +43,7 @@ const Task = sequelize.define('Task', {
 });
 
 // one-to-many relationship with User
-User.hasMany(Task, { foreignKey: 'user_id' });
+
 Task.belongsTo(User, { foreignKey: 'user_id' });
 
 module.exports = Task;
