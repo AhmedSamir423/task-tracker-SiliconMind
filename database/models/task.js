@@ -1,49 +1,44 @@
-const sequelize = require('../database'); 
-const User = require('./user'); 
-
-const Task = sequelize.define('Task', {
-  task_id: {
-    type: DataTypes.INTEGER,
-    autoIncrement: true,
-    primaryKey: true,
-  },
-  user_id: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: User,
-      key: 'user_id',
+module.exports = (sequelize, DataTypes) => {
+  const Task = sequelize.define('Task', {
+    task_id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
     },
-  },
-  estimate: {
-    type: DataTypes.FLOAT, // Hours
-    allowNull: false,
-  },
-  status: {
-    type: DataTypes.ENUM('To do', 'In Progress', 'Done'),
-    allowNull: false,
-    defaultValue: 'To do',
-  },
-  title: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  description: {
-    type: DataTypes.TEXT,
-  },
-  completed_at: {
-    type: DataTypes.DATE,
-  },
-  loggedtime: {
-    type: DataTypes.INTEGER, // Hours
-    defaultValue: 0,
-  },
-}, {
-  timestamps: false, // Disable createdAt and updatedAt
-});
+    user_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    estimate: {
+      type: DataTypes.FLOAT,
+      allowNull: false,
+    },
+    status: {
+      type: DataTypes.ENUM('To do', 'In Progress', 'Done'),
+      allowNull: false,
+      defaultValue: 'To do',
+    },
+    title: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    description: {
+      type: DataTypes.TEXT,
+    },
+    completed_at: {
+      type: DataTypes.DATE,
+    },
+    loggedtime: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
+  }, {
+    timestamps: false,
+  });
 
-// one-to-many relationship with User
+  Task.associate = function(models) {
+    Task.belongsTo(models.User, { foreignKey: 'user_id' });
+  };
 
-Task.belongsTo(User, { foreignKey: 'user_id' });
-
-module.exports = Task;
+  return Task;
+};
