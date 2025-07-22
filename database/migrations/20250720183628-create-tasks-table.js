@@ -13,7 +13,7 @@ module.exports = {
       loggedtime: { type: Sequelize.INTEGER, defaultValue: 0 }
     });
   },
-  down: async (queryInterface, Sequelize) => {
+  down: async (queryInterface) => {
     await queryInterface.dropTable('Tasks');
   }
 };
