@@ -6,7 +6,6 @@ const sequelize = new Sequelize('postgres://task_user:taskpass@localhost:5432/ta
   logging: false,
 });
 
-
 async function testConnection() {
   try {
     await sequelize.authenticate();
