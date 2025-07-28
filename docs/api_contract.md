@@ -1,9 +1,9 @@
 # Task Tracker API Contract
 
-
 ## Authentication
 
 ### POST /api/auth/signup
+
 - **Description**: Creates a new user account and returns a JWT token.
 - **Request**:
   - **Headers**: `Content-Type: application/json`
@@ -13,8 +13,8 @@
   - **400 Bad Request**: `{ "error": "Invalid email or password" }`
   - **409 Conflict**: `{ "error": "Email already exists" }`
 
-
 ### POST /api/auth/login
+
 - **Description**: Authenticates a user and returns a JWT token.
 - **Request**:
   - **Headers**: `Content-Type: application/json`
@@ -23,10 +23,10 @@
   - **200 OK**: `{ "token": "jwt-token" }`
   - **401 Unauthorized**: `{ "error": "Invalid credentials" }`
 
-
 ## Tasks
 
 ### POST /api/tasks
+
 - **Description**: Creates a new task for the authenticated user.
 - **Request**:
   - **Headers**: `Content-Type: application/json`, `Authorization: Bearer <jwt-token>`
@@ -36,8 +36,8 @@
   - **400 Bad Request**: `{ "error": "Title is required" }`
   - **401 Unauthorized**: `{ "error": "Invalid or missing token" }`
 
-
 ### GET /api/tasks
+
 - **Description**: Retrieves all tasks for the authenticated user.
 - **Request**:
   - **Headers**: `Authorization: Bearer <jwt-token>`
@@ -45,8 +45,8 @@
   - **200 OK**: `{ "tasks": [{ "id": 1, "title": "Finish report", "status": "To-do", "estimate": 2, "logged_time": 0 }, ...] }`
   - **401 Unauthorized**: `{ "error": "Invalid or missing token" }`
 
-
 ### PATCH /api/tasks/:id
+
 - **Description**: Updates a task’s title, description, estimate, or status.
 - **Request**:
   - **Headers**: `Content-Type: application/json`, `Authorization: Bearer <jwt-token>`
@@ -57,8 +57,8 @@
   - **401 Unauthorized**: `{ "error": "Invalid or missing token" }`
   - **404 Not Found**: `{ "error": "Task not found" }`
 
-
 ### DELETE /api/tasks/:id
+
 - **Description**: Deletes a task for the authenticated user.
 - **Request**:
   - **Headers**: `Authorization: Bearer <jwt-token>`
@@ -67,8 +67,8 @@
   - **401 Unauthorized**: `{ "error": "Invalid or missing token" }`
   - **404 Not Found**: `{ "error": "Task not found" }`
 
-
 ### POST /api/tasks/:id/time
+
 - **Description**: Logs time spent on a task.
 - **Request**:
   - **Headers**: `Content-Type: application/json`, `Authorization: Bearer <jwt-token>`
@@ -79,10 +79,10 @@
   - **401 Unauthorized**: `{ "error": "Invalid or missing token" }`
   - **404 Not Found**: `{ "error": "Task not found" }`
 
-
 ## Stats
 
 ### GET /api/stats
+
 - **Description**: Retrieves productivity stats for the authenticated user.
 - **Request**:
   - **Headers**: `Authorization: Bearer <jwt-token>`
