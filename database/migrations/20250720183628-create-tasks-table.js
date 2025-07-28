@@ -3,7 +3,7 @@
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable('Tasks', {
-      task_id: { type: Sequelize.INTEGER, autoIncrement: true, primaryKey: true },
+      task_id: { type: Sequelize.BIGINT, autoIncrement: true, primaryKey: true },
       user_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
