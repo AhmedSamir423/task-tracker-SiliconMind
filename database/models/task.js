@@ -3,12 +3,12 @@ module.exports = (sequelize, DataTypes) => {
     'Task',
     {
       task_id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.BIGINT,
         autoIncrement: true,
         primaryKey: true,
       },
       user_id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.BIGINT,
         allowNull: false,
       },
       estimate: {
