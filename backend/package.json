@@ -2,6 +2,7 @@
   "name": "backend",
   "version": "1.0.0",
   "main": "index.js",
+
   "dependencies": {
     "accepts": "^2.0.0",
     "bcrypt": "^6.0.0",
@@ -78,11 +79,20 @@
     "vary": "^1.1.2",
     "wrappy": "^1.0.2"
   },
+
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": ""
+
+  "description": "",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "dotenv": "^17.2.0",
+    "express": "^5.1.0",
+    "express-validator": "^7.2.1"
+  }
+
 }
