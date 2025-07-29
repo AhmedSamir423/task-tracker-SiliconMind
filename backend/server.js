@@ -139,6 +139,42 @@ app.post(
   }
 );
 
+// Get all tasks for the authenticated user
+app.get('/api/tasks', authenticateToken, async (req, res) => {
+  try {
+    const tasks = await Task.findAll({
+      where: { user_id: req.user.userId },
+      attributes: ['task_id', 'title', 'description', 'estimate', 'status', 'completed_at', 'loggedtime'],
+    });
+    res.status(200).json(tasks);
+  } catch (error) {
+    console.error('Get tasks error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get a specific task by ID
+app.get('/api/tasks/:id', authenticateToken, async (req, res) => {
+  try {
+    const task = await Task.findOne({
+      where: {
+        task_id: req.params.id,
+        user_id: req.user.userId,
+      },
+      attributes: ['task_id', 'title', 'description', 'estimate', 'status', 'completed_at', 'loggedtime'],
+    });
+
+    if (!task) {
+      return res.status(404).json({ error: 'Task not found or not authorized' });
+    }
+
+    res.status(200).json(task);
+  } catch (error) {
+    console.error('Get task error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
