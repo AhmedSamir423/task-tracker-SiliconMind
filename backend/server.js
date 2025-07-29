@@ -5,6 +5,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { User } = require('../database/models');
 const models = require('../database/models');
+const { Task } = require('../database/models');
 models.sequelize
   .authenticate()
   .then(() => console.log('Database connected'))
@@ -12,6 +13,18 @@ models.sequelize
 dotenv.config({ path: '../root.env' });
 const app = express();
 app.use(express.json());
+
+// Middleware to authenticate JWT
+const authenticateToken = (req, res, next) => {
+  const token = req.headers['authorization']?.split(' ')[1]; // Expect "Bearer <token>"
+  if (!token) return res.status(401).json({ error: 'No token provided' });
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) return res.status(403).json({ error: 'Invalid token' });
+    req.user = decoded; // Attach decoded userId to request
+    next();
+  });
+};
 
 app.post(
   '/api/auth/signup',
@@ -81,6 +94,46 @@ app.post(
       res.status(200).json({ token });
     } catch (error) {
       console.error('Login error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+);
+
+// Create task route
+app.post(
+  '/api/tasks',
+  authenticateToken, // Apply authentication middleware
+  [
+    body('title').notEmpty().withMessage('Title is required'),
+    body('estimate').isFloat({ min: 0 }).withMessage('Estimate must be a positive number'),
+    body('status')
+      .isIn(['To do', 'In Progress', 'Done'])
+      .withMessage('Status must be To do, In Progress, or Done'),
+    body('description').optional().trim(),
+    body('completed_at').optional().isISO8601().toDate(),
+    body('loggedtime').optional().isFloat({ min: 0 }),
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const { title, estimate, status, description, completed_at, loggedtime } = req.body;
+      const newTask = await Task.create({
+        user_id: req.user.userId, // From authenticated token
+        title,
+        estimate,
+        status,
+        description,
+        completed_at,
+        loggedtime,
+      });
+
+      res.status(201).json(newTask);
+    } catch (error) {
+      console.error('Task creation error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   }
