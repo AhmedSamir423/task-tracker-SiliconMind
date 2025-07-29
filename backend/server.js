@@ -144,7 +144,15 @@ app.get('/api/tasks', authenticateToken, async (req, res) => {
   try {
     const tasks = await Task.findAll({
       where: { user_id: req.user.userId },
-      attributes: ['task_id', 'title', 'description', 'estimate', 'status', 'completed_at', 'loggedtime'],
+      attributes: [
+        'task_id',
+        'title',
+        'description',
+        'estimate',
+        'status',
+        'completed_at',
+        'loggedtime',
+      ],
     });
     res.status(200).json(tasks);
   } catch (error) {
@@ -161,7 +169,15 @@ app.get('/api/tasks/:id', authenticateToken, async (req, res) => {
         task_id: req.params.id,
         user_id: req.user.userId,
       },
-      attributes: ['task_id', 'title', 'description', 'estimate', 'status', 'completed_at', 'loggedtime'],
+      attributes: [
+        'task_id',
+        'title',
+        'description',
+        'estimate',
+        'status',
+        'completed_at',
+        'loggedtime',
+      ],
     });
 
     if (!task) {
@@ -174,6 +190,71 @@ app.get('/api/tasks/:id', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+// Update a specific task
+app.patch(
+  '/api/tasks/:id',
+  authenticateToken,
+  [
+    body('title').optional().trim().notEmpty().withMessage('Title cannot be empty'),
+    body('description').optional().trim(),
+    body('estimate')
+      .optional()
+      .isFloat({ min: 0 })
+      .withMessage('Estimate must be a positive number'),
+    body('status')
+      .optional()
+      .isIn(['To do', 'In Progress', 'Done'])
+      .withMessage('Status must be To do, In Progress, or Done'),
+    body('completed_at').optional().isISO8601().toDate(),
+    body('loggedtime')
+      .optional()
+      .isFloat({ min: 0 })
+      .withMessage('Logged time must be a positive number'),
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const { id } = req.params;
+      const updates = req.body;
+      const task = await Task.findOne({
+        where: {
+          task_id: id,
+          user_id: req.user.userId,
+        },
+      });
+
+      if (!task) {
+        return res.status(404).json({ error: 'Task not found or not authorized' });
+      }
+
+      // Update only the provided fields
+      await task.update(updates);
+
+      // Return the updated task
+      const updatedTask = await Task.findOne({
+        where: { task_id: id },
+        attributes: [
+          'task_id',
+          'title',
+          'description',
+          'estimate',
+          'status',
+          'completed_at',
+          'loggedtime',
+        ],
+      });
+      res.status(200).json(updatedTask);
+    } catch (error) {
+      console.error('Update task error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+);
 
 const PORT = 3000;
 app.listen(PORT, () => {
