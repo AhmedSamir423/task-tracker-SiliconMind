@@ -256,6 +256,29 @@ app.patch(
   }
 );
 
+// Delete a specific task
+app.delete('/api/tasks/:id', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const task = await Task.findOne({
+      where: {
+        task_id: id,
+        user_id: req.user.userId,
+      },
+    });
+
+    if (!task) {
+      return res.status(404).json({ error: 'Task not found or not authorized' });
+    }
+
+    await task.destroy();
+    res.status(204).send(); // No content response
+  } catch (error) {
+    console.error('Delete task error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
