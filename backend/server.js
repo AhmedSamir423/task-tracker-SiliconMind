@@ -231,7 +231,12 @@ app.patch(
       if (!task) {
         return res.status(404).json({ error: 'Task not found or not authorized' });
       }
-
+      // Handle cumulative loggedtime
+      if (updates.loggedtime !== undefined) {
+        const currentLoggedTime = task.loggedtime || 0;
+        const newLoggedTime = parseFloat(updates.loggedtime);
+        updates.loggedtime = currentLoggedTime + newLoggedTime;
+      }
       // Update only the provided fields
       await task.update(updates);
 
