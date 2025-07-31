@@ -13,6 +13,8 @@ models.sequelize
 dotenv.config({ path: '../root.env' });
 const app = express();
 app.use(express.json());
+const cors = require('cors');
+app.use(cors());
 
 // Middleware to authenticate JWT
 const authenticateToken = (req, res, next) => {
