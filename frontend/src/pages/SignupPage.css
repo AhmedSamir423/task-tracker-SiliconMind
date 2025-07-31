@@ -1,0 +1,78 @@
+/* Fullscreen center layout with Netflix-style colors */
+.signup-container {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #141414;
+  font-family: 'Helvetica Neue', sans-serif;
+}
+
+/* White box in the center */
+.signup-form {
+  background-color: #000;
+  color: #fff;
+  padding: 40px;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 0 10px rgba(255, 0, 0, 0.2);
+}
+
+/* Headers */
+.signup-form h2 {
+  font-size: 24px;
+  margin-bottom: 20px;
+  color: #e50914;
+  text-align: center;
+}
+
+/* Labels */
+.signup-form label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+/* Inputs */
+.signup-form input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 16px;
+  border: none;
+  border-radius: 4px;
+  background-color: #333;
+  color: white;
+}
+
+/* Button */
+.signup-form button {
+  width: 100%;
+  padding: 12px;
+  background-color: #e50914;
+  border: none;
+  border-radius: 4px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.signup-form button:hover {
+  background-color: #f6121d;
+}
+
+.signup-form button:disabled {
+  background-color: #333;
+  cursor: not-allowed;
+}
+
+/* Error */
+.error-message {
+  background-color: #e50914;
+  padding: 10px;
+  margin-bottom: 16px;
+  color: white;
+  border-radius: 4px;
+  text-align: center;
+}
