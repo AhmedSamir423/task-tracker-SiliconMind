@@ -139,11 +139,24 @@ function Dashboard() {
         <div className="modal-overlay" onClick={closeModal}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h2>{selectedTask.title || 'Untitled Task'}</h2>
-            <p><strong>Description:</strong> {selectedTask.description || 'No description'}</p>
-            <p><strong>Estimate:</strong> {selectedTask.estimate || 'N/A'} hours</p>
-            <p><strong>Status:</strong> {selectedTask.status || 'N/A'}</p>
-            <p><strong>Completed At:</strong> {selectedTask.completed_at ? new Date(selectedTask.completed_at).toLocaleDateString() : 'N/A'}</p>
-            <p><strong>Logged Time:</strong> {selectedTask.loggedtime || 'N/A'} hours</p>
+            <p>
+              <strong>Description:</strong> {selectedTask.description || 'No description'}
+            </p>
+            <p>
+              <strong>Estimate:</strong> {selectedTask.estimate || 'N/A'} hours
+            </p>
+            <p>
+              <strong>Status:</strong> {selectedTask.status || 'N/A'}
+            </p>
+            <p>
+              <strong>Completed At:</strong>{' '}
+              {selectedTask.completed_at
+                ? new Date(selectedTask.completed_at).toLocaleDateString()
+                : 'N/A'}
+            </p>
+            <p>
+              <strong>Logged Time:</strong> {selectedTask.loggedtime || 'N/A'} hours
+            </p>
             <button className="modal-close-button" onClick={closeModal}>
               Close
             </button>
