@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import './LoginPage.css'; // Link the CSS file here
+import './LoginPage.css';
 
 function LoginPage() {
   const [email, setEmail] = useState('');
@@ -21,7 +21,7 @@ function LoginPage() {
         password,
       });
       const { token } = response.data;
-      localStorage.setItem('token', token); 
+      localStorage.setItem('token', token);
       navigate('/dashboard'); // Redirect to dashboard (route to be added)
     } catch (err) {
       const status = err.response?.status;
@@ -60,10 +60,7 @@ function LoginPage() {
               required
             />
           </div>
-          <button
-            type="submit"
-            disabled={!isFormValid || loading}
-          >
+          <button type="submit" disabled={!isFormValid || loading}>
             {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
