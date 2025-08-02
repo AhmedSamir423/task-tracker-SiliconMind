@@ -1,23 +1,25 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 import './Dashboard.css';
 
 function Dashboard() {
+  // Existing state variables (unchanged)
   const [tasks, setTasks] = useState([]);
   const [selectedTask, setSelectedTask] = useState(null);
   const [error, setError] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false); // For task details modal
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false); // For create task modal
-  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false); // For update task modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [isTimeLogModalOpen, setIsTimeLogModalOpen] = useState(false);
   const [newTask, setNewTask] = useState({
     title: '',
     estimate: '',
     status: 'To do',
     description: '',
     loggedtime: '0',
-  }); // State for new task form
+  });
   const [updateTask, setUpdateTask] = useState({
     taskId: '',
     title: '',
@@ -26,14 +28,21 @@ function Dashboard() {
     description: '',
     loggedtime: '0',
     completed_at: '',
-  }); // State for update task form
+  });
+  const [timeLogTask, setTimeLogTask] = useState({ taskId: '', loggedtime: 0 });
+  const [clockAngle, setClockAngle] = useState(0);
+  const [showNonCompletedOnly, setShowNonCompletedOnly] = useState(false);
+
+  // New state variables for clock interaction
+  const [isDragging, setIsDragging] = useState(false);
+  const [timeToAdd, setTimeToAdd] = useState(0);
+  const canvasRef = useRef(null);
   const navigate = useNavigate();
 
+  // Existing useEffect for fetching tasks (unchanged)
   useEffect(() => {
     const token = localStorage.getItem('token');
-    console.log('Token from localStorage:', token);
     if (!token) {
-      console.log('No token, redirecting to login');
       navigate('/login');
       return;
     }
@@ -43,7 +52,6 @@ function Dashboard() {
         const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/tasks`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        console.log('API response for tasks:', response.data);
         setTasks(response.data || []);
       } catch (err) {
         setError('Failed to load tasks');
@@ -54,13 +62,95 @@ function Dashboard() {
     fetchTasks();
   }, [navigate]);
 
+  // Draw clock function
+  const drawClock = (angle) => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw clock face
+      ctx.beginPath();
+      ctx.arc(100, 100, 90, 0, Math.PI * 2);
+      ctx.strokeStyle = '#fff';
+      ctx.stroke();
+      ctx.closePath();
+
+      // Draw center
+      ctx.beginPath();
+      ctx.arc(100, 100, 5, 0, Math.PI * 2);
+      ctx.fillStyle = '#fff';
+      ctx.fill();
+      ctx.closePath();
+
+      // Draw needle
+      const angleRad = (angle - 90) * Math.PI / 180;
+      ctx.beginPath();
+      ctx.moveTo(100, 100);
+      ctx.lineTo(100 + 80 * Math.cos(angleRad), 100 + 80 * Math.sin(angleRad));
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#e50914';
+      ctx.stroke();
+      ctx.closePath();
+    }
+  };
+
+  // Redraw clock when modal opens or angle changes
+  useEffect(() => {
+    if (isTimeLogModalOpen) {
+      drawClock(clockAngle);
+    }
+  }, [isTimeLogModalOpen, clockAngle]);
+
+  // Mouse event handlers
+  const handleMouseDown = useCallback((e) => {
+    setIsDragging(true);
+  }, []);
+
+  const handleMouseMove = useCallback(
+    (e) => {
+      if (isDragging) {
+        const canvas = canvasRef.current;
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left - 100; // Center at (100, 100)
+        const y = e.clientY - rect.top - 100;
+        const angle = Math.atan2(y, x) * (180 / Math.PI) + 90;
+        const normalizedAngle = (angle + 360) % 360;
+        setClockAngle(normalizedAngle);
+        const minutesToAdd = Math.round((normalizedAngle / 360) * 60);
+        setTimeToAdd(minutesToAdd);
+      }
+    },
+    [isDragging]
+  );
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  // Attach event listeners to canvas when modal is open
+  useEffect(() => {
+    if (isTimeLogModalOpen && canvasRef.current) {
+      const canvas = canvasRef.current;
+      canvas.addEventListener('mousedown', handleMouseDown);
+      canvas.addEventListener('mousemove', handleMouseMove);
+      canvas.addEventListener('mouseup', handleMouseUp);
+
+      return () => {
+        canvas.removeEventListener('mousedown', handleMouseDown);
+        canvas.removeEventListener('mousemove', handleMouseMove);
+        canvas.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isTimeLogModalOpen, handleMouseDown, handleMouseMove, handleMouseUp]);
+
+  // Existing handlers (unchanged except for handleTimeLog and handleTimeLogSubmit)
   const handleTaskClick = async (taskId) => {
     const token = localStorage.getItem('token');
     try {
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/tasks/${taskId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log('API response for task:', response.data);
       setSelectedTask(response.data);
       setIsModalOpen(true);
     } catch (err) {
@@ -79,14 +169,13 @@ function Dashboard() {
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/tasks/${taskId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log('API response for task to update:', response.data);
       setUpdateTask({
-        taskId: response.data.task_id,
+        taskId: response.data.task_id || taskId,
         title: response.data.title || '',
-        estimate: response.data.estimate || '',
+        estimate: response.data.estimate !== undefined ? String(response.data.estimate) : '',
         status: response.data.status || 'To do',
         description: response.data.description || '',
-        loggedtime: response.data.loggedtime || '0',
+        loggedtime: response.data.loggedtime !== undefined ? String(response.data.loggedtime) : '0',
         completed_at: response.data.completed_at || '',
       });
       setIsUpdateModalOpen(true);
@@ -96,17 +185,48 @@ function Dashboard() {
     }
   };
 
-  const handleDeleteTask = (taskId) => {
-    if (window.confirm(`Delete task with ID: ${taskId}?`)) alert(`Task ID: ${taskId} deleted`);
+  const handleTimeLog = async (taskId) => {
+    const token = localStorage.getItem('token');
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/tasks/${taskId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setTimeLogTask({
+        taskId: response.data.task_id || taskId,
+        loggedtime: parseFloat(response.data.loggedtime) || 0,
+      });
+      setClockAngle(0);
+      setTimeToAdd(0); // Reset time to add
+      setIsTimeLogModalOpen(true);
+    } catch (err) {
+      setError('Failed to load task for time log');
+      console.error('Fetch task for time log error:', err.response?.data || err.message);
+    }
+  };
+
+  const handleDeleteTask = async (taskId) => {
+    if (window.confirm(`Delete task with ID: ${taskId}?`)) {
+      const token = localStorage.getItem('token');
+      try {
+        await axios.delete(`${import.meta.env.VITE_API_URL}/api/tasks/${taskId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const updatedTasks = await axios.get(`${import.meta.env.VITE_API_URL}/api/tasks`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setTasks(updatedTasks.data || []);
+      } catch (err) {
+        setError('Failed to delete task');
+        console.error('Delete task error:', err.response?.data || err.message);
+      }
+    }
   };
 
   const getUserId = () => {
     const token = localStorage.getItem('token');
-    console.log('Attempting to decode token:', token);
     if (token) {
       try {
         const decoded = jwtDecode(token);
-        console.log('Decoded token payload:', decoded);
         return decoded.userId || decoded.user_id || 'Unknown';
       } catch (err) {
         console.error('JWT decode error:', err.message);
@@ -138,12 +258,44 @@ function Dashboard() {
     setUpdateTask({ taskId: '', title: '', estimate: '', status: 'To do', description: '', loggedtime: '0', completed_at: '' });
   };
 
+  const closeTimeLogModal = () => {
+    setIsTimeLogModalOpen(false);
+    setTimeLogTask({ taskId: '', loggedtime: 0 });
+    setClockAngle(0);
+    setTimeToAdd(0);
+  };
+
   const handleInputChange = (e, isUpdate = false) => {
     const { name, value } = e.target;
     if (isUpdate) {
       setUpdateTask((prev) => ({ ...prev, [name]: value }));
     } else {
       setNewTask((prev) => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleTimeLogSubmit = async () => {
+    const token = localStorage.getItem('token');
+    try {
+      const payload = {
+        logged_time: timeToAdd / 60, // Convert minutes to hours
+      };
+      const response = await axios.patch(
+        `${import.meta.env.VITE_API_URL}/api/tasks/${timeLogTask.taskId}/time`,
+        payload,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      console.log('Task time logged:', response.data);
+      const updatedTasks = await axios.get(`${import.meta.env.VITE_API_URL}/api/tasks`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setTasks(updatedTasks.data || []);
+      closeTimeLogModal();
+    } catch (err) {
+      setError('Failed to log time');
+      console.error('Time log error:', err.response?.data || err.message);
     }
   };
 
@@ -154,19 +306,19 @@ function Dashboard() {
       const payload = isUpdate
         ? {
             taskId: updateTask.taskId,
-            title: updateTask.title,
-            estimate: parseFloat(updateTask.estimate) || 0,
+            title: updateTask.title.trim(),
+            estimate: updateTask.estimate === '' ? undefined : parseFloat(updateTask.estimate),
             status: updateTask.status,
             description: updateTask.description || undefined,
-            loggedtime: parseFloat(updateTask.loggedtime) || 0,
-            completed_at: updateTask.completed_at || null,
+            loggedtime: updateTask.loggedtime === '' ? undefined : parseFloat(updateTask.loggedtime),
+            completed_at: updateTask.status === 'Done' && !updateTask.completed_at ? new Date().toISOString().split('T')[0] : updateTask.completed_at || undefined,
           }
         : {
-            title: newTask.title,
-            estimate: parseFloat(newTask.estimate) || 0,
+            title: newTask.title.trim(),
+            estimate: newTask.estimate === '' ? undefined : parseFloat(newTask.estimate),
             status: newTask.status,
             description: newTask.description || undefined,
-            loggedtime: parseFloat(newTask.loggedtime) || 0,
+            loggedtime: newTask.loggedtime === '' ? undefined : parseFloat(newTask.loggedtime),
           };
       const url = isUpdate
         ? `${import.meta.env.VITE_API_URL}/api/tasks/${updateTask.taskId}`
@@ -189,6 +341,7 @@ function Dashboard() {
 
   return (
     <div className="dashboard-container">
+      {/* Existing dashboard header and task list (unchanged) */}
       <div className="dashboard-header">
         <div>
           <h1 className="dashboard-title">TaskFlix Dashboard</h1>
@@ -203,58 +356,79 @@ function Dashboard() {
           </button>
         </div>
       </div>
+      <div className="filter-section">
+        <label>
+          <input
+            type="checkbox"
+            checked={showNonCompletedOnly}
+            onChange={(e) => setShowNonCompletedOnly(e.target.checked)}
+          />
+          View only non-completed tasks
+        </label>
+      </div>
       <div className="tasks-list">
         {error && <p className="error-message">{error}</p>}
         {tasks.length > 0 ? (
-          tasks.map((task) => {
-            const progress = task.estimate
-              ? Math.min(100, (parseFloat(task.loggedtime) / parseFloat(task.estimate)) * 100)
-              : 0;
-            const isOverworked = task.estimate && parseFloat(task.loggedtime) > parseFloat(task.estimate);
+          tasks
+            .filter((task) => !showNonCompletedOnly || task.status !== 'Done')
+            .map((task) => {
+              const progress = task.estimate
+                ? Math.min(100, (parseFloat(task.loggedtime) / parseFloat(task.estimate)) * 100)
+                : 0;
+              const isOverworked = task.estimate && parseFloat(task.loggedtime) > parseFloat(task.estimate);
 
-            return (
-              <div key={task.task_id || task.id} className="task-item">
-                <span
-                  className={`task-title ${task.status === 'Done' ? 'task-done' : ''}`}
-                  onClick={() => handleTaskClick(task.task_id || task.id)}
-                  style={{ cursor: 'pointer' }}
-                >
-                  {task.title || 'Untitled'}
-                </span>
-                <div className="task-progress">
-                  <div
-                    className="progress-bar"
-                    style={{ width: `${progress}%`, backgroundColor: task.status === 'Done' ? '#e50914' : '#00cc00' }}
-                  ></div>
-                </div>
-                {isOverworked && (
-                  <span className="warning-triangle" title="You worked more than expected on this task">
-                    ⚠
-                  </span>
-                )}
-                <div className="task-actions">
+              return (
+                <div key={task.task_id || task.id} className="task-item">
                   <span
-                    className="action-icon"
-                    onClick={() => handleUpdateTask(task.task_id || task.id)}
+                    className={`task-title ${task.status === 'Done' ? 'task-done' : ''}`}
+                    onClick={() => handleTaskClick(task.task_id || task.id)}
                     style={{ cursor: 'pointer' }}
                   >
-                    ✎
+                    {task.title || 'Untitled'}
                   </span>
-                  <span
-                    className="action-icon"
-                    onClick={() => handleDeleteTask(task.task_id || task.id)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    ✖
-                  </span>
+                  <div className="task-progress">
+                    <div
+                      className="progress-bar"
+                      style={{ width: `${progress}%`, backgroundColor: task.status === 'Done' ? '#00cc00' : '#ff4444' }}
+                    ></div>
+                  </div>
+                  {isOverworked && (
+                    <span className="warning-triangle" title="You worked more than expected on this task">
+                      ⚠
+                    </span>
+                  )}
+                  <div className="task-actions">
+                    <span
+                      className="action-icon"
+                      onClick={() => handleUpdateTask(task.task_id || task.id)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      ✎
+                    </span>
+                    <span
+                      className="action-icon"
+                      onClick={() => handleDeleteTask(task.task_id || task.id)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      ✖
+                    </span>
+                    <span
+                      className="action-icon"
+                      onClick={() => handleTimeLog(task.task_id || task.id)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      +
+                    </span>
+                  </div>
                 </div>
-              </div>
-            );
-          })
+              );
+            })
         ) : (
           <p className="no-tasks">No tasks yet for this user!</p>
         )}
       </div>
+
+      {/* Existing modals (unchanged) */}
       {isModalOpen && selectedTask && (
         <div className="modal-overlay" onClick={closeModal}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -288,7 +462,7 @@ function Dashboard() {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h2>Create New Task</h2>
             <form onSubmit={(e) => handleSubmit(e, false)}>
-              <div>
+              <div Thalindra>
                 <label>
                   Title:
                   <input
@@ -391,7 +565,6 @@ function Dashboard() {
                     onChange={(e) => handleInputChange(e, true)}
                     step="0.1"
                     min="0"
-                    required
                   />
                 </label>
               </div>
@@ -457,6 +630,38 @@ function Dashboard() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Updated Time Logging Modal */}
+      {isTimeLogModalOpen && (
+        <div className="modal-overlay" onClick={closeTimeLogModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h2>Log Time for {tasks.find((t) => t.task_id === timeLogTask.taskId)?.title || 'Task'}</h2>
+            <div style={{ position: 'relative', width: '200px', height: '200px', margin: '0 auto' }}>
+              <canvas
+                ref={canvasRef}
+                id="clockCanvas"
+                width="200"
+                height="200"
+                style={{ border: '1px solid #fff', cursor: 'pointer' }}
+              ></canvas>
+              <p style={{ color: '#ccc', textAlign: 'center', marginTop: '10px' }}>
+                Time to add: {timeToAdd} minutes
+              </p>
+            </div>
+            <button className="modal-close-button" onClick={handleTimeLogSubmit}>
+              Submit Time
+            </button>
+            <button
+              type="button"
+              className="modal-close-button"
+              onClick={closeTimeLogModal}
+              style={{ marginLeft: '10px' }}
+            >
+              Cancel
+            </button>
           </div>
         </div>
       )}
