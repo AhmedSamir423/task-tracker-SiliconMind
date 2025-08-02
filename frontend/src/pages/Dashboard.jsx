@@ -8,7 +8,15 @@ function Dashboard() {
   const [tasks, setTasks] = useState([]);
   const [selectedTask, setSelectedTask] = useState(null);
   const [error, setError] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false); // State for modal
+  const [isModalOpen, setIsModalOpen] = useState(false); // For task details modal
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false); // For create task modal
+  const [newTask, setNewTask] = useState({
+    title: '',
+    estimate: '',
+    status: 'To do',
+    description: '',
+    loggedtime: '0', // Default to 0
+  }); // State for new task form, removed completed_at
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -51,7 +59,10 @@ function Dashboard() {
     }
   };
 
-  const handleCreateTask = () => alert('Create new task clicked!');
+  const handleCreateTask = () => {
+    setIsCreateModalOpen(true);
+  };
+
   const handleUpdateTask = (taskId) => alert(`Update task with ID: ${taskId}`);
   const handleDeleteTask = (taskId) => {
     if (window.confirm(`Delete task with ID: ${taskId}?`)) alert(`Task ID: ${taskId} deleted`);
@@ -83,6 +94,39 @@ function Dashboard() {
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedTask(null);
+  };
+
+  const closeCreateModal = () => {
+    setIsCreateModalOpen(false);
+    setNewTask({ title: '', estimate: '', status: 'To do', description: '', loggedtime: '0' });
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewTask((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const token = localStorage.getItem('token');
+    try {
+      const payload = {
+        title: newTask.title,
+        estimate: parseFloat(newTask.estimate) || 0,
+        status: newTask.status,
+        description: newTask.description || undefined, // Optional, send undefined if empty
+        loggedtime: parseFloat(newTask.loggedtime) || 0, // Default to 0
+      };
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/tasks`, payload, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log('Task created:', response.data);
+      setTasks((prev) => [...prev, response.data]);
+      closeCreateModal();
+    } catch (err) {
+      setError('Failed to create task');
+      console.error('Create task error:', err.response?.data || err.message);
+    }
   };
 
   return (
@@ -160,6 +204,87 @@ function Dashboard() {
             <button className="modal-close-button" onClick={closeModal}>
               Close
             </button>
+          </div>
+        </div>
+      )}
+      {isCreateModalOpen && (
+        <div className="modal-overlay" onClick={closeCreateModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h2>Create New Task</h2>
+            <form onSubmit={handleSubmit}>
+              <div>
+                <label>
+                  Title:
+                  <input
+                    type="text"
+                    name="title"
+                    value={newTask.title}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </label>
+              </div>
+              <div>
+                <label>
+                  Estimate (hours):
+                  <input
+                    type="number"
+                    name="estimate"
+                    value={newTask.estimate}
+                    onChange={handleInputChange}
+                    step="0.1"
+                    min="0"
+                    required
+                  />
+                </label>
+              </div>
+              <div>
+                <label>
+                  Status:
+                  <select name="status" value={newTask.status} onChange={handleInputChange}>
+                    <option value="To do">To do</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Done">Done</option>
+                  </select>
+                </label>
+              </div>
+              <div>
+                <label>
+                  Description:
+                  <textarea
+                    name="description"
+                    value={newTask.description}
+                    onChange={handleInputChange}
+                  />
+                </label>
+              </div>
+              <div>
+                <label>
+                  Logged Time (hours):
+                  <input
+                    type="number"
+                    name="loggedtime"
+                    value={newTask.loggedtime}
+                    onChange={handleInputChange}
+                    step="0.1"
+                    min="0"
+                  />
+                </label>
+              </div>
+              <div>
+                <button type="submit" className="modal-close-button">
+                  Create Task
+                </button>
+                <button
+                  type="button"
+                  className="modal-close-button"
+                  onClick={closeCreateModal}
+                  style={{ marginLeft: '10px' }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

@@ -174,3 +174,39 @@
 .modal-close-button:hover {
   background-color: #555;
 }
+
+.modal-content form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modal-content form div {
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-content form label {
+  margin-bottom: 5px;
+  font-size: 14px;
+}
+
+.modal-content form input,
+.modal-content form textarea,
+.modal-content form select {
+  background-color: #222;
+  border: 1px solid #444;
+  color: #fff;
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.modal-content form input[type="number"] {
+  width: 100px;
+}
+
+.modal-content form textarea {
+  resize: vertical;
+  min-height: 60px;
+}
