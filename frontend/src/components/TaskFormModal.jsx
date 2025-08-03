@@ -15,9 +15,10 @@ const TaskFormModal = ({ isOpen, onClose, task, onSubmit, isUpdate, setTask }) =
       status: task.status,
       description: task.description || undefined,
       loggedtime: task.loggedtime === '' ? undefined : parseFloat(task.loggedtime),
-      completed_at: task.status === 'Done' && !task.completed_at && isUpdate
-        ? new Date().toISOString().split('T')[0]
-        : task.completed_at || undefined,
+      completed_at:
+        task.status === 'Done' && !task.completed_at && isUpdate
+          ? new Date().toISOString().split('T')[0]
+          : task.completed_at || undefined,
     };
     onSubmit(payload, isUpdate);
   };

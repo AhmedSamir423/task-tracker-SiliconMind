@@ -27,7 +27,7 @@ const TimeLogModal = ({ isOpen, onClose, taskId, onSubmit, taskTitle }) => {
       ctx.closePath();
 
       // Draw needle (adjusted for clock-like behavior, 0° at 12 o'clock)
-      const angleRad = (angle - 90) * Math.PI / 180; // -90 to align 0° with 12 o'clock
+      const angleRad = ((angle - 90) * Math.PI) / 180; // -90 to align 0° with 12 o'clock
       ctx.beginPath();
       ctx.moveTo(100, 100);
       ctx.lineTo(100 + 80 * Math.cos(angleRad), 100 + 80 * Math.sin(angleRad));
@@ -59,7 +59,7 @@ const TimeLogModal = ({ isOpen, onClose, taskId, onSubmit, taskTitle }) => {
       const dx = x - centerX;
       const dy = y - centerY;
       let angle = Math.atan2(dy, dx) * (180 / Math.PI); // Angle in degrees
-      angle = ((angle + 360) % 360 + 90) % 360; // Normalize and shift 0° to 3 o'clock, then adjust for clock (12 o'clock = 0°)
+      angle = (((angle + 360) % 360) + 90) % 360; // Normalize and shift 0° to 3 o'clock, then adjust for clock (12 o'clock = 0°)
       if (angle < 0) angle += 360; // Ensure positive angle
       console.log('Calculated angle:', angle);
       setClockAngle(angle);
@@ -102,7 +102,9 @@ const TimeLogModal = ({ isOpen, onClose, taskId, onSubmit, taskTitle }) => {
             Time to add: {timeToAdd} minutes
           </p>
         </div>
-        <button className="modal-close-button" onClick={handleSubmit}>Submit Time</button>
+        <button className="modal-close-button" onClick={handleSubmit}>
+          Submit Time
+        </button>
         <button
           type="button"
           className="modal-close-button"

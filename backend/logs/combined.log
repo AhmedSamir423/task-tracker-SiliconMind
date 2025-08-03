@@ -1,0 +1,9 @@
+2025-08-03T19:51:06.222Z [info] : Server running on port 3000 
+2025-08-03T19:51:06.346Z [info] : Database connected 
+2025-08-03T19:55:03.904Z [info] : Server running on port 3000 
+2025-08-03T19:55:04.027Z [info] : Database connected 
+2025-08-03T19:55:11.339Z [info] : Task retrieved {"taskId":"5","userId":"2"}
+2025-08-03T19:57:12.960Z [info] : Task created {"taskId":"18","userId":"2"}
+2025-08-03T19:57:12.971Z [info] : Tasks retrieved {"userId":"2","count":5}
+2025-08-03T19:57:29.840Z [info] : Task deleted {"taskId":"14","userId":"2"}
+2025-08-03T19:57:29.850Z [info] : Tasks retrieved {"userId":"2","count":4}

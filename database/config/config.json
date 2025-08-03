@@ -10,7 +10,7 @@
   "test": {
     "username": "task_user",
     "password": "taskpass",
-    "database": "task_tracker_test",
+    "database": "task_tracker",
     "host": "localhost",
     "port": 5432,
     "dialect": "postgres"
@@ -18,7 +18,7 @@
   "production": {
     "username": "task_user",
     "password": "taskpass",
-    "database": "task_tracker_prod",
+    "database": "task_tracker",
     "host": "localhost",
     "port": 5432,
     "dialect": "postgres"

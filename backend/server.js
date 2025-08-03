@@ -6,15 +6,18 @@ const jwt = require('jsonwebtoken');
 const { User } = require('../database/models');
 const models = require('../database/models');
 const { Task } = require('../database/models');
+const { logger, morganMiddleware } = require('./logger');
+
 models.sequelize
   .authenticate()
-  .then(() => console.log('Database connected'))
-  .catch((err) => console.error('Database connection failed:', err));
+  .then(() => logger.info('Database connected'))
+  .catch((err) => logger.error('Database connection failed:', err));
 dotenv.config({ path: '../root.env' });
 const app = express();
 app.use(express.json());
 const cors = require('cors');
 app.use(cors());
+app.use(morganMiddleware); // HTTP request logging
 
 // Middleware to authenticate JWT
 const authenticateToken = (req, res, next) => {
@@ -22,7 +25,10 @@ const authenticateToken = (req, res, next) => {
   if (!token) return res.status(401).json({ error: 'No token provided' });
 
   jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-    if (err) return res.status(403).json({ error: 'Invalid token' });
+    if (err) {
+      logger.error('Invalid token:', err.message);
+      return res.status(403).json({ error: 'Invalid token' });
+    }
     req.user = decoded; // Attach decoded userId to request
     next();
   });
@@ -32,7 +38,6 @@ app.post(
   '/api/auth/signup',
   [
     body('email').isEmail().withMessage('Invalid email format'),
-
     body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
   ],
   async (req, res) => {
@@ -53,9 +58,10 @@ app.post(
 
       await User.create({ email, password: hashedPassword });
 
+      logger.info('User created', { email });
       res.status(201).json({ message: 'User created' });
     } catch (error) {
-      console.error('Signup error:', error);
+      logger.error('Signup error:', error.message);
       res.status(500).json({ error: 'Internal server error' });
     }
   }
@@ -92,10 +98,10 @@ app.post(
         expiresIn: '1h',
       });
 
-      // Return success response
+      logger.info('User logged in', { userId: user.user_id });
       res.status(200).json({ token });
     } catch (error) {
-      console.error('Login error:', error);
+      logger.error('Login error:', error.message);
       res.status(500).json({ error: 'Internal server error' });
     }
   }
@@ -133,9 +139,10 @@ app.post(
         loggedtime,
       });
 
+      logger.info('Task created', { taskId: newTask.task_id, userId: req.user.userId });
       res.status(201).json(newTask);
     } catch (error) {
-      console.error('Task creation error:', error);
+      logger.error('Task creation error:', error.message);
       res.status(500).json({ error: 'Internal server error' });
     }
   }
@@ -156,9 +163,10 @@ app.get('/api/tasks', authenticateToken, async (req, res) => {
         'loggedtime',
       ],
     });
+    logger.info('Tasks retrieved', { userId: req.user.userId, count: tasks.length });
     res.status(200).json(tasks);
   } catch (error) {
-    console.error('Get tasks error:', error);
+    logger.error('Get tasks error:', error.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -186,9 +194,10 @@ app.get('/api/tasks/:id', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'Task not found or not authorized' });
     }
 
+    logger.info('Task retrieved', { taskId: req.params.id, userId: req.user.userId });
     res.status(200).json(task);
   } catch (error) {
-    console.error('Get task error:', error);
+    logger.error('Get task error:', error.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -250,20 +259,20 @@ app.patch(
           'loggedtime',
         ],
       });
+      logger.info('Task updated', { taskId: id, userId: req.user.userId });
       res.status(200).json(updatedTask);
     } catch (error) {
-      console.error('Update task error:', error);
+      logger.error('Update task error:', error.message);
       res.status(500).json({ error: 'Internal server error' });
     }
   }
 );
+
 // Log time for a specific task
 app.patch(
   '/api/tasks/:id/time',
   authenticateToken,
-  [
-    body('logged_time').isFloat({ min: 0 }).withMessage('Logged time must be a positive number'),
-  ],
+  [body('logged_time').isFloat({ min: 0 }).withMessage('Logged time must be a positive number')],
   async (req, res) => {
     try {
       const errors = validationResult(req);
@@ -302,13 +311,15 @@ app.patch(
           'loggedtime',
         ],
       });
+      logger.info('Time logged', { taskId: id, loggedTime: logged_time, userId: req.user.userId });
       res.status(200).json(updatedTask);
     } catch (error) {
-      console.error('Log time error:', error);
+      logger.error('Log time error:', error.message);
       res.status(500).json({ error: 'Internal server error' });
     }
   }
 );
+
 // Delete a specific task
 app.delete('/api/tasks/:id', authenticateToken, async (req, res) => {
   try {
@@ -325,14 +336,15 @@ app.delete('/api/tasks/:id', authenticateToken, async (req, res) => {
     }
 
     await task.destroy();
+    logger.info('Task deleted', { taskId: id, userId: req.user.userId });
     res.status(204).send(); // No content response
   } catch (error) {
-    console.error('Delete task error:', error);
+    logger.error('Delete task error:', error.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 const PORT = 3000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  logger.info(`Server running on port ${PORT}`);
 });
