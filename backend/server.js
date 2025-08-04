@@ -20,19 +20,7 @@ app.use(cors());
 app.use(morganMiddleware); // HTTP request logging
 
 // Middleware to authenticate JWT
-const authenticateToken = (req, res, next) => {
-  const token = req.headers['authorization']?.split(' ')[1]; // Expect "Bearer <token>"
-  if (!token) return res.status(401).json({ error: 'No token provided' });
-
-  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-    if (err) {
-      logger.error('Invalid token:', err.message);
-      return res.status(403).json({ error: 'Invalid token' });
-    }
-    req.user = decoded; // Attach decoded userId to request
-    next();
-  });
-};
+const authenticateToken = require('./middleware/auth');
 
 app.post(
   '/api/auth/signup',
