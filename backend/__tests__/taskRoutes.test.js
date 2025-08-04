@@ -36,11 +36,11 @@ jest.mock('../../database/models', () => {
   Task.findOne = jest.fn().mockImplementation(() => {
     const taskInstance = {
       ...currentTask,
-      update: jest.fn().mockImplementation(function(updates) {
+      update: jest.fn().mockImplementation(function (updates) {
         Object.assign(currentTask, updates);
         return Promise.resolve(this);
       }),
-      save: jest.fn().mockImplementation(function() {
+      save: jest.fn().mockImplementation(function () {
         currentTask.loggedtime = 1.5;
         return Promise.resolve(this);
       }),
@@ -117,7 +117,9 @@ const updateTask = async (req, res) => {
     });
     if (!task) return res.status(404).json({ error: 'Task not found or not authorized' });
     await task.update(req.body);
-    const updatedTask = await require('../../database/models').Task.findOne({ where: { task_id: req.params.id } });
+    const updatedTask = await require('../../database/models').Task.findOne({
+      where: { task_id: req.params.id },
+    });
     res.status(200).json(updatedTask);
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
@@ -134,7 +136,9 @@ const logTime = async (req, res) => {
     if (!task) return res.status(404).json({ error: 'Task not found or not authorized' });
     task.loggedtime = (task.loggedtime || 0) + parseFloat(req.body.logged_time);
     await task.save();
-    const updatedTask = await require('../../database/models').Task.findOne({ where: { task_id: req.params.id } });
+    const updatedTask = await require('../../database/models').Task.findOne({
+      where: { task_id: req.params.id },
+    });
     res.status(200).json(updatedTask);
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
@@ -155,36 +159,63 @@ const deleteTask = async (req, res) => {
 };
 
 // Register routes
-app.post('/api/tasks', authenticateToken, [
-  body('title').notEmpty().withMessage('Title is required'),
-  body('estimate').isFloat({ min: 0 }).withMessage('Estimate must be a positive number'),
-  body('status').isIn(['To do', 'In Progress', 'Done']).withMessage('Invalid status'),
-  body('description').optional().trim(),
-  body('completed_at').optional().isISO8601().toDate(),
-  body('loggedtime').optional().isFloat({ min: 0 }),
-], createTask);
+app.post(
+  '/api/tasks',
+  authenticateToken,
+  [
+    body('title').notEmpty().withMessage('Title is required'),
+    body('estimate').isFloat({ min: 0 }).withMessage('Estimate must be a positive number'),
+    body('status').isIn(['To do', 'In Progress', 'Done']).withMessage('Invalid status'),
+    body('description').optional().trim(),
+    body('completed_at').optional().isISO8601().toDate(),
+    body('loggedtime').optional().isFloat({ min: 0 }),
+  ],
+  createTask
+);
 
 app.get('/api/tasks', authenticateToken, getTasks);
 app.get('/api/tasks/:id', authenticateToken, getTaskById);
-app.patch('/api/tasks/:id', authenticateToken, [
-  body('title').optional().trim().notEmpty().withMessage('Title cannot be empty'),
-  body('description').optional().trim(),
-  body('estimate').optional().isFloat({ min: 0 }).withMessage('Estimate must be a positive number'),
-  body('status').optional().isIn(['To do', 'In Progress', 'Done']).withMessage('Invalid status'),
-  body('completed_at').optional().isISO8601().toDate(),
-  body('loggedtime').optional().isFloat({ min: 0 }).withMessage('Logged time must be a positive number'),
-], updateTask);
-app.patch('/api/tasks/:id/time', authenticateToken, [
-  body('logged_time').isFloat({ min: 0 }).withMessage('Logged time must be a positive number'),
-], logTime);
+app.patch(
+  '/api/tasks/:id',
+  authenticateToken,
+  [
+    body('title').optional().trim().notEmpty().withMessage('Title cannot be empty'),
+    body('description').optional().trim(),
+    body('estimate')
+      .optional()
+      .isFloat({ min: 0 })
+      .withMessage('Estimate must be a positive number'),
+    body('status').optional().isIn(['To do', 'In Progress', 'Done']).withMessage('Invalid status'),
+    body('completed_at').optional().isISO8601().toDate(),
+    body('loggedtime')
+      .optional()
+      .isFloat({ min: 0 })
+      .withMessage('Logged time must be a positive number'),
+  ],
+  updateTask
+);
+app.patch(
+  '/api/tasks/:id/time',
+  authenticateToken,
+  [body('logged_time').isFloat({ min: 0 }).withMessage('Logged time must be a positive number')],
+  logTime
+);
 app.delete('/api/tasks/:id', authenticateToken, deleteTask);
 
 describe('Task Routes', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     const Task = require('../../database/models').Task;
-    Task.create.mockResolvedValue({ task_id: 1, user_id: 1, title: 'Test Task', estimate: 2.5, status: 'To do' });
-    Task.findAll.mockResolvedValue([{ task_id: 1, user_id: 1, title: 'Test Task', estimate: 2.5, status: 'To do' }]);
+    Task.create.mockResolvedValue({
+      task_id: 1,
+      user_id: 1,
+      title: 'Test Task',
+      estimate: 2.5,
+      status: 'To do',
+    });
+    Task.findAll.mockResolvedValue([
+      { task_id: 1, user_id: 1, title: 'Test Task', estimate: 2.5, status: 'To do' },
+    ]);
     Task.findOne.mockResolvedValue({
       task_id: 1,
       user_id: 1,
@@ -192,11 +223,11 @@ describe('Task Routes', () => {
       estimate: 2.5,
       status: 'To do',
       loggedtime: 0,
-      update: jest.fn().mockImplementation(function(updates) {
+      update: jest.fn().mockImplementation(function (updates) {
         Object.assign(this, updates);
         return Promise.resolve(this);
       }),
-      save: jest.fn().mockImplementation(function() {
+      save: jest.fn().mockImplementation(function () {
         this.loggedtime = 1.5;
         return Promise.resolve(this);
       }),
@@ -224,27 +255,21 @@ describe('Task Routes', () => {
   });
 
   test('should get all tasks successfully', async () => {
-    const response = await request(app)
-      .get('/api/tasks')
-      .set('Accept', 'application/json');
+    const response = await request(app).get('/api/tasks').set('Accept', 'application/json');
     expect(response.status).toBe(200);
     expect(response.body).toHaveLength(1);
     expect(response.body[0]).toMatchObject({ task_id: 1, user_id: 1, title: 'Test Task' });
   });
 
   test('should get a task by ID successfully', async () => {
-    const response = await request(app)
-      .get('/api/tasks/1')
-      .set('Accept', 'application/json');
+    const response = await request(app).get('/api/tasks/1').set('Accept', 'application/json');
     expect(response.status).toBe(200);
     expect(response.body).toMatchObject({ task_id: 1, user_id: 1, title: 'Test Task' });
   });
 
   test('should fail to get task with invalid ID', async () => {
     require('../../database/models').Task.findOne.mockResolvedValueOnce(null);
-    const response = await request(app)
-      .get('/api/tasks/999')
-      .set('Accept', 'application/json');
+    const response = await request(app).get('/api/tasks/999').set('Accept', 'application/json');
     expect(response.status).toBe(404);
   });
 
@@ -283,17 +308,13 @@ describe('Task Routes', () => {
   });
 
   test('should delete a task successfully', async () => {
-    const response = await request(app)
-      .delete('/api/tasks/1')
-      .set('Accept', 'application/json');
+    const response = await request(app).delete('/api/tasks/1').set('Accept', 'application/json');
     expect(response.status).toBe(204);
   });
 
   test('should fail to delete non-existent task', async () => {
     require('../../database/models').Task.findOne.mockResolvedValueOnce(null);
-    const response = await request(app)
-      .delete('/api/tasks/999')
-      .set('Accept', 'application/json');
+    const response = await request(app).delete('/api/tasks/999').set('Accept', 'application/json');
     expect(response.status).toBe(404);
   });
 
