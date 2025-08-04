@@ -80,7 +80,7 @@ const createTask = async (req, res) => {
       loggedtime,
     });
     res.status(201).json(newTask);
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -91,7 +91,7 @@ const getTasks = async (req, res) => {
       where: { user_id: req.user.userId },
     });
     res.status(200).json(tasks);
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -103,7 +103,7 @@ const getTaskById = async (req, res) => {
     });
     if (!task) return res.status(404).json({ error: 'Task not found or not authorized' });
     res.status(200).json(task);
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -121,7 +121,7 @@ const updateTask = async (req, res) => {
       where: { task_id: req.params.id },
     });
     res.status(200).json(updatedTask);
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -140,7 +140,7 @@ const logTime = async (req, res) => {
       where: { task_id: req.params.id },
     });
     res.status(200).json(updatedTask);
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -153,7 +153,7 @@ const deleteTask = async (req, res) => {
     if (!task) return res.status(404).json({ error: 'Task not found or not authorized' });
     await task.destroy();
     res.status(204).send();
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
