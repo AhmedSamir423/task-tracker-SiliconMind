@@ -33,6 +33,19 @@
   margin-bottom: 8px;
   font-size: 14px;
 }
+.login-link {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.login-link a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.login-link a:hover {
+  text-decoration: underline;
+}
 
 /* Inputs */
 .signup-form input {

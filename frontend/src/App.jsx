@@ -13,10 +13,16 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route
           path="/dashboard"
-          element={isAuthenticated() ? <Dashboard /> : <Navigate to="/login" />}
+          element={isAuthenticated() ? <Dashboard /> : <Navigate to="/signup" />}
         />
-        <Route path="/" element={<Navigate to={isAuthenticated() ? '/dashboard' : '/login'} />} />
-        <Route path="*" element={<Navigate to={isAuthenticated() ? '/dashboard' : '/login'} />} />
+        <Route
+          path="/"
+          element={<Navigate to="/signup" />}
+        />
+        <Route
+          path="*"
+          element={<Navigate to="/signup" />}
+        />
       </Routes>
     </Router>
   );
