@@ -1,11 +1,13 @@
 const express = require('express');
 const request = require('supertest');
 const { morganMiddleware } = require('../logger');
-const { authenticateToken } = require('../middleware/auth');
-const { body, validationResult } = require('express-validator');
 const app = express();
 app.use(express.json());
 app.use(morganMiddleware);
+
+// Import and use the routes
+const routes = require('../routes');
+app.use('/', routes);
 
 jest.mock('../../database/models', () => {
   const SequelizeMock = require('sequelize-mock');
@@ -37,17 +39,18 @@ jest.mock('../../database/models', () => {
     const taskInstance = {
       ...currentTask,
       update: jest.fn().mockImplementation(function (updates) {
-        Object.assign(currentTask, updates);
+        Object.assign(this, updates);
         return Promise.resolve(this);
       }),
       save: jest.fn().mockImplementation(function () {
-        currentTask.loggedtime = 1.5;
+        this.loggedtime = 1.5;
         return Promise.resolve(this);
       }),
       destroy: jest.fn().mockResolvedValue(true),
     };
     return Promise.resolve(taskInstance);
   });
+  Task.destroy = jest.fn().mockResolvedValue(1); // Mock destroy for delete test
 
   return {
     Task,
@@ -64,148 +67,10 @@ jest.mock('../middleware/auth', () => ({
   }),
 }));
 
-// Route handlers extracted for testing
-const createTask = async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
-    const { title, estimate, status, description, completed_at, loggedtime } = req.body;
-    const newTask = await require('../../database/models').Task.create({
-      user_id: req.user.userId,
-      title,
-      estimate,
-      status,
-      description,
-      completed_at,
-      loggedtime,
-    });
-    res.status(201).json(newTask);
-  } catch (_error) {
-    res.status(500).json({ error: 'Internal server error' });
-  }
-};
-
-const getTasks = async (req, res) => {
-  try {
-    const tasks = await require('../../database/models').Task.findAll({
-      where: { user_id: req.user.userId },
-    });
-    res.status(200).json(tasks);
-  } catch (_error) {
-    res.status(500).json({ error: 'Internal server error' });
-  }
-};
-
-const getTaskById = async (req, res) => {
-  try {
-    const task = await require('../../database/models').Task.findOne({
-      where: { task_id: req.params.id, user_id: req.user.userId },
-    });
-    if (!task) return res.status(404).json({ error: 'Task not found or not authorized' });
-    res.status(200).json(task);
-  } catch (_error) {
-    res.status(500).json({ error: 'Internal server error' });
-  }
-};
-
-const updateTask = async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
-    const task = await require('../../database/models').Task.findOne({
-      where: { task_id: req.params.id, user_id: req.user.userId },
-    });
-    if (!task) return res.status(404).json({ error: 'Task not found or not authorized' });
-    await task.update(req.body);
-    const updatedTask = await require('../../database/models').Task.findOne({
-      where: { task_id: req.params.id },
-    });
-    res.status(200).json(updatedTask);
-  } catch (_error) {
-    res.status(500).json({ error: 'Internal server error' });
-  }
-};
-
-const logTime = async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
-    const task = await require('../../database/models').Task.findOne({
-      where: { task_id: req.params.id, user_id: req.user.userId },
-    });
-    if (!task) return res.status(404).json({ error: 'Task not found or not authorized' });
-    task.loggedtime = (task.loggedtime || 0) + parseFloat(req.body.logged_time);
-    await task.save();
-    const updatedTask = await require('../../database/models').Task.findOne({
-      where: { task_id: req.params.id },
-    });
-    res.status(200).json(updatedTask);
-  } catch (_error) {
-    res.status(500).json({ error: 'Internal server error' });
-  }
-};
-
-const deleteTask = async (req, res) => {
-  try {
-    const task = await require('../../database/models').Task.findOne({
-      where: { task_id: req.params.id, user_id: req.user.userId },
-    });
-    if (!task) return res.status(404).json({ error: 'Task not found or not authorized' });
-    await task.destroy();
-    res.status(204).send();
-  } catch (_error) {
-    res.status(500).json({ error: 'Internal server error' });
-  }
-};
-
-// Register routes
-app.post(
-  '/api/tasks',
-  authenticateToken,
-  [
-    body('title').notEmpty().withMessage('Title is required'),
-    body('estimate').isFloat({ min: 0 }).withMessage('Estimate must be a positive number'),
-    body('status').isIn(['To do', 'In Progress', 'Done']).withMessage('Invalid status'),
-    body('description').optional().trim(),
-    body('completed_at').optional().isISO8601().toDate(),
-    body('loggedtime').optional().isFloat({ min: 0 }),
-  ],
-  createTask
-);
-
-app.get('/api/tasks', authenticateToken, getTasks);
-app.get('/api/tasks/:id', authenticateToken, getTaskById);
-app.patch(
-  '/api/tasks/:id',
-  authenticateToken,
-  [
-    body('title').optional().trim().notEmpty().withMessage('Title cannot be empty'),
-    body('description').optional().trim(),
-    body('estimate')
-      .optional()
-      .isFloat({ min: 0 })
-      .withMessage('Estimate must be a positive number'),
-    body('status').optional().isIn(['To do', 'In Progress', 'Done']).withMessage('Invalid status'),
-    body('completed_at').optional().isISO8601().toDate(),
-    body('loggedtime')
-      .optional()
-      .isFloat({ min: 0 })
-      .withMessage('Logged time must be a positive number'),
-  ],
-  updateTask
-);
-app.patch(
-  '/api/tasks/:id/time',
-  authenticateToken,
-  [body('logged_time').isFloat({ min: 0 }).withMessage('Logged time must be a positive number')],
-  logTime
-);
-app.delete('/api/tasks/:id', authenticateToken, deleteTask);
-
 describe('Task Routes', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    const Task = require('../../database/models').Task;
+    const { Task } = require('../../database/models');
     Task.create.mockResolvedValue({
       task_id: 1,
       user_id: 1,
@@ -233,6 +98,7 @@ describe('Task Routes', () => {
       }),
       destroy: jest.fn().mockResolvedValue(true),
     });
+    Task.destroy.mockResolvedValue(1); // Ensure destroy returns affected rows
   });
 
   test('should create a task successfully', async () => {
@@ -313,14 +179,13 @@ describe('Task Routes', () => {
   });
 
   test('should fail to delete non-existent task', async () => {
-    require('../../database/models').Task.findOne.mockResolvedValueOnce(null);
+    require('../../database/models').Task.destroy.mockResolvedValue(0); // No rows affected
     const response = await request(app).delete('/api/tasks/999').set('Accept', 'application/json');
     expect(response.status).toBe(404);
   });
 
-  // Add test for error case to boost branch coverage
   test('should handle database error on update', async () => {
-    const Task = require('../../database/models').Task;
+    const { Task } = require('../../database/models');
     Task.findOne.mockRejectedValueOnce(new Error('Database error'));
     const response = await request(app)
       .patch('/api/tasks/1')
