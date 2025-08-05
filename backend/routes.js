@@ -82,7 +82,9 @@ router.post(
   [
     body('title').notEmpty().withMessage('Title is required'),
     body('estimate').isFloat({ min: 0 }).withMessage('Estimate must be a positive number'),
-    body('status').isIn(['To do', 'In Progress', 'Done']).withMessage('Status must be To do, In Progress, or Done'),
+    body('status')
+      .isIn(['To do', 'In Progress', 'Done'])
+      .withMessage('Status must be To do, In Progress, or Done'),
     body('description').optional().trim(),
     body('completed_at').optional().isISO8601().toDate(),
     body('loggedtime').optional().isFloat({ min: 0 }),
@@ -119,7 +121,15 @@ router.get('/api/tasks', authenticateToken, async (req, res) => {
   try {
     const tasks = await Task.findAll({
       where: { user_id: req.user.userId },
-      attributes: ['task_id', 'title', 'description', 'estimate', 'status', 'completed_at', 'loggedtime'],
+      attributes: [
+        'task_id',
+        'title',
+        'description',
+        'estimate',
+        'status',
+        'completed_at',
+        'loggedtime',
+      ],
     });
     logger.info('Tasks retrieved', { userId: req.user.userId, count: tasks.length });
     res.status(200).json(tasks);
@@ -134,7 +144,15 @@ router.get('/api/tasks/:id', authenticateToken, async (req, res) => {
   try {
     const task = await Task.findOne({
       where: { task_id: req.params.id, user_id: req.user.userId },
-      attributes: ['task_id', 'title', 'description', 'estimate', 'status', 'completed_at', 'loggedtime'],
+      attributes: [
+        'task_id',
+        'title',
+        'description',
+        'estimate',
+        'status',
+        'completed_at',
+        'loggedtime',
+      ],
     });
 
     if (!task) {
@@ -156,10 +174,19 @@ router.patch(
   [
     body('title').optional().trim().notEmpty().withMessage('Title cannot be empty'),
     body('description').optional().trim(),
-    body('estimate').optional().isFloat({ min: 0 }).withMessage('Estimate must be a positive number'),
-    body('status').optional().isIn(['To do', 'In Progress', 'Done']).withMessage('Status must be To do, In Progress, or Done'),
+    body('estimate')
+      .optional()
+      .isFloat({ min: 0 })
+      .withMessage('Estimate must be a positive number'),
+    body('status')
+      .optional()
+      .isIn(['To do', 'In Progress', 'Done'])
+      .withMessage('Status must be To do, In Progress, or Done'),
     body('completed_at').optional().isISO8601().toDate(),
-    body('loggedtime').optional().isFloat({ min: 0 }).withMessage('Logged time must be a positive number'),
+    body('loggedtime')
+      .optional()
+      .isFloat({ min: 0 })
+      .withMessage('Logged time must be a positive number'),
   ],
   async (req, res) => {
     try {
