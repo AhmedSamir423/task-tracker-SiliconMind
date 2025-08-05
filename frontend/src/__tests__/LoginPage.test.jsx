@@ -23,9 +23,10 @@ describe('LoginPage', () => {
     expect(screen.getByRole('button', { name: /login/i })).toBeInTheDocument();
   });
 
-
   test('shows error with invalid credentials', async () => {
-    axios.post.mockRejectedValueOnce({ response: { status: 401, data: { message: 'Invalid credentials' } } });
+    axios.post.mockRejectedValueOnce({
+      response: { status: 401, data: { message: 'Invalid credentials' } },
+    });
 
     render(
       <MemoryRouter>

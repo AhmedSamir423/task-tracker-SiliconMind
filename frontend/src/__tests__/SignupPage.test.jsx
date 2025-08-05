@@ -22,10 +22,10 @@ describe('SignupPage', () => {
     expect(screen.getByRole('button', { name: /sign up/i })).toBeInTheDocument();
   });
 
-  
-
   test('shows error with existing email', async () => {
-    axios.post.mockRejectedValueOnce({ response: { status: 409, data: { message: 'Email already exists' } } });
+    axios.post.mockRejectedValueOnce({
+      response: { status: 409, data: { message: 'Email already exists' } },
+    });
 
     render(
       <MemoryRouter>

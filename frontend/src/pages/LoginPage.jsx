@@ -22,7 +22,7 @@ function LoginPage() {
       });
       const { token } = response.data;
       localStorage.setItem('token', token);
-      navigate('/dashboard'); 
+      navigate('/dashboard');
     } catch (err) {
       const status = err.response?.status;
       if (status === 401) setError('Invalid credentials');

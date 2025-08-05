@@ -15,14 +15,8 @@ function App() {
           path="/dashboard"
           element={isAuthenticated() ? <Dashboard /> : <Navigate to="/signup" />}
         />
-        <Route
-          path="/"
-          element={<Navigate to="/signup" />}
-        />
-        <Route
-          path="*"
-          element={<Navigate to="/signup" />}
-        />
+        <Route path="/" element={<Navigate to="/signup" />} />
+        <Route path="*" element={<Navigate to="/signup" />} />
       </Routes>
     </Router>
   );
