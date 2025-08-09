@@ -14,7 +14,13 @@ dotenv.config({ path: '../root.env' });
 const app = express();
 app.use(express.json());
 const cors = require('cors');
-app.use(cors());
+
+app.use(cors({
+  origin: 'http://localhost:5173', 
+  methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+  credentials: true
+}));
+
 
 // Middleware to authenticate JWT
 const authenticateToken = (req, res, next) => {
@@ -233,7 +239,12 @@ app.patch(
       if (!task) {
         return res.status(404).json({ error: 'Task not found or not authorized' });
       }
-
+      // Handle cumulative loggedtime
+      if (updates.loggedtime !== undefined) {
+        const currentLoggedTime = task.loggedtime || 0;
+        const newLoggedTime = parseFloat(updates.loggedtime);
+        updates.loggedtime = currentLoggedTime + newLoggedTime;
+      }
       // Update only the provided fields
       await task.update(updates);
 
