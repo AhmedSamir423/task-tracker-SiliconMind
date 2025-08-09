@@ -78,7 +78,6 @@
   box-shadow: 0 0 5px rgba(255, 0, 0, 0.2);
 
   position: relative;
-
 }
 
 .task-title {
@@ -92,13 +91,11 @@
 .task-title.task-done {
   text-decoration: line-through;
   color: #888;
-
 }
 
 .task-title:hover {
   color: #e50914;
 }
-
 
 .task-progress {
   width: 100%;
@@ -132,7 +129,6 @@
   display: flex;
   gap: 10px;
   align-self: flex-end;
-
 }
 
 .action-icon {
@@ -218,7 +214,6 @@
   background-color: #555;
 }
 
-
 .modal-content form {
   display: flex;
   flex-direction: column;
@@ -254,4 +249,3 @@
   resize: vertical;
   min-height: 60px;
 }
-

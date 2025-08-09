@@ -136,7 +136,6 @@ function Dashboard() {
         console.error('Delete task error:', err.response?.data || err.message);
       }
     }
-
   };
 
   const getUserId = () => {
@@ -155,9 +154,6 @@ function Dashboard() {
     return 'Unknown';
   };
 
-
-  
-
   const handleLogout = () => {
     localStorage.removeItem('token');
     navigate('/login');
@@ -167,7 +163,6 @@ function Dashboard() {
     setIsModalOpen(false);
     setSelectedTask(null);
   };
-
 
   const closeCreateModal = () => {
     setIsCreateModalOpen(false);
@@ -238,7 +233,6 @@ function Dashboard() {
 
   const userId = getUserId();
 
-
   return (
     <div className="dashboard-container">
       <div className="dashboard-header">
@@ -247,14 +241,12 @@ function Dashboard() {
           <p className="welcome-message">Welcome, {userId}</p>
         </div>
         <div>
-
           <button className="create-button" onClick={handleCreateTask}>
             +
           </button>
           <button className="logout-button" onClick={handleLogout}>
             Logout
           </button>
-
         </div>
       </div>
       <div className="filter-section">
@@ -307,11 +299,9 @@ function Dashboard() {
           onSubmit={handleTimeLogSubmit}
           taskTitle={tasks.find((t) => t.task_id === timeLogTask.taskId)?.title || 'Task'}
         />
-
       )}
     </div>
   );
 }
 
 export default Dashboard;
-
