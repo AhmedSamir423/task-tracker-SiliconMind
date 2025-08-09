@@ -11,7 +11,15 @@ const db = {};
 
 let sequelize;
 if (config.use_env_variable) {
-  sequelize = new Sequelize(process.env[config.use_env_variable], config);
+  const dbUrl = process.env[config.use_env_variable];
+  const url = new URL(dbUrl);
+  // Use the same database name (task_tracker) for both envs
+  sequelize = new Sequelize(url.pathname.slice(1), url.username, url.password, {
+    host: url.hostname,
+    port: url.port,
+    dialect: 'postgres',
+    logging: (msg) => console.log(msg), // Optional: Log SQL queries
+  });
 } else {
   sequelize = new Sequelize(config.database, config.username, config.password, config);
 }

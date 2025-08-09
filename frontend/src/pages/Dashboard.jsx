@@ -176,7 +176,15 @@ function Dashboard() {
 
   const closeUpdateModal = () => {
     setIsUpdateModalOpen(false);
-    setUpdateTask({ taskId: '', title: '', estimate: '', status: 'To do', description: '', loggedtime: '0', completed_at: '' });
+    setUpdateTask({
+      taskId: '',
+      title: '',
+      estimate: '',
+      status: 'To do',
+      description: '',
+      loggedtime: '0',
+      completed_at: '',
+    });
   };
 
   const closeTimeLogModal = () => {
@@ -221,7 +229,10 @@ function Dashboard() {
       isUpdate ? closeUpdateModal() : closeCreateModal();
     } catch (err) {
       setError(`Failed to ${isUpdate ? 'update' : 'create'} task`);
-      console.error(`${isUpdate ? 'Update' : 'Create'} task error:`, err.response?.data || err.message);
+      console.error(
+        `${isUpdate ? 'Update' : 'Create'} task error:`,
+        err.response?.data || err.message
+      );
     }
   };
 
@@ -237,8 +248,13 @@ function Dashboard() {
         </div>
         <div>
 
-          <button className="create-button" onClick={handleCreateTask}>+</button>
-          <button className="logout-button" onClick={handleLogout}>Logout</button>
+          <button className="create-button" onClick={handleCreateTask}>
+            +
+          </button>
+          <button className="logout-button" onClick={handleLogout}>
+            Logout
+          </button>
+
         </div>
       </div>
       <div className="filter-section">
