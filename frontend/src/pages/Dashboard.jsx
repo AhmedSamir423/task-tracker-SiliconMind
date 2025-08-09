@@ -2,16 +2,19 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
+
 import TaskList from '../components/TaskList';
 import TaskDetailsModal from '../components/TaskDetailsModal';
 import TaskFormModal from '../components/TaskFormModal';
 import TimeLogModal from '../components/TimeLogModal';
+
 import './Dashboard.css';
 
 function Dashboard() {
   const [tasks, setTasks] = useState([]);
   const [selectedTask, setSelectedTask] = useState(null);
   const [error, setError] = useState('');
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
@@ -34,25 +37,30 @@ function Dashboard() {
   });
   const [timeLogTask, setTimeLogTask] = useState({ taskId: '', loggedtime: 0 });
   const [showNonCompletedOnly, setShowNonCompletedOnly] = useState(false);
+
   const navigate = useNavigate();
 
   useEffect(() => {
     const token = localStorage.getItem('token');
+
     if (!token) {
       navigate('/login');
       return;
     }
+
     const fetchTasks = async () => {
       try {
         const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/tasks`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+
         setTasks(response.data || []);
       } catch (err) {
         setError('Failed to load tasks');
         console.error('Fetch tasks error:', err.response?.data || err.message);
       }
     };
+
     fetchTasks();
   }, [navigate]);
 
@@ -62,6 +70,7 @@ function Dashboard() {
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/tasks/${taskId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
       setSelectedTask(response.data);
       setIsModalOpen(true);
     } catch (err) {
@@ -127,13 +136,16 @@ function Dashboard() {
         console.error('Delete task error:', err.response?.data || err.message);
       }
     }
+
   };
 
   const getUserId = () => {
     const token = localStorage.getItem('token');
+
     if (token) {
       try {
         const decoded = jwtDecode(token);
+
         return decoded.userId || decoded.user_id || 'Unknown';
       } catch (err) {
         console.error('JWT decode error:', err.message);
@@ -142,6 +154,9 @@ function Dashboard() {
     }
     return 'Unknown';
   };
+
+
+  const userId = getUserId();
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -152,6 +167,7 @@ function Dashboard() {
     setIsModalOpen(false);
     setSelectedTask(null);
   };
+
 
   const closeCreateModal = () => {
     setIsCreateModalOpen(false);
@@ -222,6 +238,7 @@ function Dashboard() {
 
   const userId = getUserId();
 
+
   return (
     <div className="dashboard-container">
       <div className="dashboard-header">
@@ -230,12 +247,14 @@ function Dashboard() {
           <p className="welcome-message">Welcome, {userId}</p>
         </div>
         <div>
+
           <button className="create-button" onClick={handleCreateTask}>
             +
           </button>
           <button className="logout-button" onClick={handleLogout}>
             Logout
           </button>
+
         </div>
       </div>
       <div className="filter-section">
@@ -288,9 +307,11 @@ function Dashboard() {
           onSubmit={handleTimeLogSubmit}
           taskTitle={tasks.find((t) => t.task_id === timeLogTask.taskId)?.title || 'Task'}
         />
+
       )}
     </div>
   );
 }
 
 export default Dashboard;
+
