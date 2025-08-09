@@ -19,16 +19,34 @@ const TaskList = ({
             : 0;
           const isOverworked =
             task.estimate && parseFloat(task.loggedtime) > parseFloat(task.estimate);
+          const isEfficientlyCompleted =
+            task.status === 'Done' &&
+            task.estimate &&
+            parseFloat(task.loggedtime) < parseFloat(task.estimate);
 
           return (
             <div key={task.task_id || task.id} className="task-item">
-              <span
-                className={`task-title ${task.status === 'Done' ? 'task-done' : ''}`}
-                onClick={() => onTaskClick(task.task_id || task.id)}
-                style={{ cursor: 'pointer' }}
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  width: '100%',
+                }}
               >
-                {task.title || 'Untitled'}
-              </span>
+                <span
+                  className={`task-title ${task.status === 'Done' ? 'task-done' : ''}`}
+                  onClick={() => onTaskClick(task.task_id || task.id)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  {task.title || 'Untitled'}
+                </span>
+                {isEfficientlyCompleted && (
+                  <span className="celebration-icon" title="Task completed ahead of schedule!">
+                    🎉
+                  </span>
+                )}
+              </div>
               <div className="task-progress">
                 <div
                   className="progress-bar"
