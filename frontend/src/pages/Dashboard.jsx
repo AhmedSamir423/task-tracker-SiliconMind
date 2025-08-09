@@ -156,7 +156,7 @@ function Dashboard() {
   };
 
 
-  const userId = getUserId();
+  
 
   const handleLogout = () => {
     localStorage.removeItem('token');
