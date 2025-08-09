@@ -14,11 +14,13 @@ dotenv.config({ path: '../root.env' });
 const app = express();
 app.use(express.json());
 const cors = require('cors');
+
 app.use(cors({
   origin: 'http://localhost:5173', 
   methods: ['GET', 'POST', 'PATCH', 'DELETE'],
   credentials: true
 }));
+
 
 // Middleware to authenticate JWT
 const authenticateToken = (req, res, next) => {
@@ -266,7 +268,58 @@ app.patch(
     }
   }
 );
+// Log time for a specific task
+app.patch(
+  '/api/tasks/:id/time',
+  authenticateToken,
+  [
+    body('logged_time').isFloat({ min: 0 }).withMessage('Logged time must be a positive number'),
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
 
+      const { id } = req.params;
+      const { logged_time } = req.body;
+
+      const task = await Task.findOne({
+        where: {
+          task_id: id,
+          user_id: req.user.userId,
+        },
+      });
+
+      if (!task) {
+        return res.status(404).json({ error: 'Task not found or not authorized' });
+      }
+
+      // Update loggedtime by adding the new logged_time
+      task.loggedtime = (task.loggedtime || 0) + parseFloat(logged_time);
+      await task.save();
+
+      // Return the updated task
+      const updatedTask = await Task.findOne({
+        where: { task_id: id },
+        attributes: [
+          'task_id',
+          'title',
+          'description',
+          'estimate',
+          'status',
+          'completed_at',
+          'loggedtime',
+        ],
+      });
+      res.status(200).json(updatedTask);
+    } catch (error) {
+      console.error('Log time error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+);
 // Delete a specific task
 app.delete('/api/tasks/:id', authenticateToken, async (req, res) => {
   try {
