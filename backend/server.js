@@ -14,7 +14,11 @@ dotenv.config({ path: '../root.env' });
 const app = express();
 app.use(express.json());
 const cors = require('cors');
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173', 
+  methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+  credentials: true
+}));
 
 // Middleware to authenticate JWT
 const authenticateToken = (req, res, next) => {
