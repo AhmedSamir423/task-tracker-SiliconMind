@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
-import { useNavigate, Link } from 'react-router-dom'; // 👈 Added Link import
+import { useNavigate, Link } from 'react-router-dom';
 import './LoginPage.css';
 
 function LoginPage() {
@@ -65,7 +65,6 @@ function LoginPage() {
           </button>
         </form>
 
-        {/* 👇 NEW: Add this signup link */}
         <p className="signup-link">
           Don't have an account? <Link to="/signup">Sign Up</Link>
         </p>

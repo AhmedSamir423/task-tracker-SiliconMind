@@ -14,7 +14,7 @@ services:
     networks:
       - task-tracker-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d task_tracker"]
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER} -d task_tracker']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -49,7 +49,7 @@ services:
       APP_NAME: ${APP_NAME}
       NODE_ENV: production
     ports:
-      - "80:80"
+      - '80:80'
     depends_on:
       - backend
     networks:

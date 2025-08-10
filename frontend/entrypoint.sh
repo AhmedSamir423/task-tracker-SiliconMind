@@ -7,5 +7,5 @@ envsubst < /usr/share/nginx/html/env.template.js > /usr/share/nginx/html/env.js
 echo "Environment variables substituted:"
 cat /usr/share/nginx/html/env.js
 
-# Start nginx
+
 exec "$@"

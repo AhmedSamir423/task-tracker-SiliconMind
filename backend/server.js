@@ -6,7 +6,6 @@ if (process.env.NODE_ENV !== 'production') {
   dotenv.config({ path: '../root.env' });
 }
 
-// Validate and sanitize environment variables
 const env = require('./config/env');
 
 const models = require('./database/models');
@@ -14,7 +13,6 @@ const { logger, morganMiddleware } = require('./logger');
 const routes = require('./routes');
 const cors = require('cors');
 
-// Test database connection (no sync needed - tables already exist)
 models.sequelize
   .authenticate()
   .then(() => {
@@ -26,9 +24,10 @@ const app = express();
 
 // CORS configuration
 const corsOptions = {
-  origin: env.NODE_ENV === 'production' 
-    ? [process.env.FRONTEND_URL || 'http://localhost:80', 'http://localhost'] 
-    : ['http://localhost:5173', 'http://localhost:3000'],
+  origin:
+    env.NODE_ENV === 'production'
+      ? [process.env.FRONTEND_URL || 'http://localhost:80', 'http://localhost']
+      : ['http://localhost:5173', 'http://localhost:3000'],
   methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
@@ -41,10 +40,10 @@ app.use(morganMiddleware);
 
 // Health check route
 app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'OK', 
+  res.status(200).json({
+    status: 'OK',
     timestamp: new Date().toISOString(),
-    environment: env.NODE_ENV 
+    environment: env.NODE_ENV,
   });
 });
 
