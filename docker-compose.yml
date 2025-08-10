@@ -1,0 +1,39 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: task-tracker-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://task_user:taskpass@host.docker.internal:5432/task_tracker
+      JWT_SECRET: ${JWT_SECRET:-ITSGONALWAYSBEMYFAULT}
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    networks:
+      - task-tracker-network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        VITE_API_URL: http://localhost:3000
+    container_name: task-tracker-frontend
+    restart: unless-stopped
+    environment:
+      API_URL: http://localhost:3000
+      APP_NAME: Task Tracker SiliconMind
+      NODE_ENV: production
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - task-tracker-network
+
+networks:
+  task-tracker-network:
+    driver: bridge
