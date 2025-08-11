@@ -21,16 +21,16 @@ components:
         user_id:
           type: integer
           example: 1
-          description: "Unique identifier for the user"
+          description: 'Unique identifier for the user'
         email:
           type: string
           format: email
-          example: "user@example.com"
+          example: 'user@example.com'
           description: "User's email address"
         password:
           type: string
           format: password
-          example: "password123"
+          example: 'password123'
           description: "User's password (hashed)"
       required:
         - user_id
@@ -45,12 +45,12 @@ components:
         email:
           type: string
           format: email
-          example: "user@example.com"
+          example: 'user@example.com'
           description: "User's email address"
         password:
           type: string
           minLength: 6
-          example: "password123"
+          example: 'password123'
           description: "User's password (minimum 6 characters)"
     UserLogin:
       type: object
@@ -61,67 +61,67 @@ components:
         email:
           type: string
           format: email
-          example: "user@example.com"
+          example: 'user@example.com'
           description: "User's email address"
         password:
           type: string
-          example: "password123"
+          example: 'password123'
           description: "User's password"
     AuthResponse:
       type: object
       properties:
         token:
           type: string
-          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-          description: "JWT token for authentication (expires in 1 hour)"
+          example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+          description: 'JWT token for authentication (expires in 1 hour)'
     Task:
       type: object
       properties:
         task_id:
           type: integer
           example: 1
-          description: "Unique identifier for the task"
+          description: 'Unique identifier for the task'
         user_id:
           type: integer
           example: 1
-          description: "ID of the user who owns this task"
+          description: 'ID of the user who owns this task'
         title:
           type: string
-          example: "Complete project documentation"
-          description: "Task title"
+          example: 'Complete project documentation'
+          description: 'Task title'
         description:
           type: string
-          example: "Write comprehensive API documentation"
-          description: "Detailed description of the task"
+          example: 'Write comprehensive API documentation'
+          description: 'Detailed description of the task'
         estimate:
           type: number
           example: 4.5
-          description: "Estimated time to complete (in hours)"
+          description: 'Estimated time to complete (in hours)'
         status:
           type: string
           enum: [To do, In Progress, Done]
-          example: "In Progress"
-          description: "Current status of the task"
+          example: 'In Progress'
+          description: 'Current status of the task'
         completed_at:
           type: string
           format: date-time
-          example: "2024-01-15T10:30:00Z"
-          description: "When the task was completed (null if not completed)"
+          example: '2024-01-15T10:30:00Z'
+          description: 'When the task was completed (null if not completed)'
           nullable: true
         loggedtime:
           type: number
           example: 2.5
-          description: "Total time logged on this task (in hours)"
+          description: 'Total time logged on this task (in hours)'
         created_at:
           type: string
           format: date-time
-          example: "2024-01-15T09:00:00Z"
-          description: "When the task was created"
+          example: '2024-01-15T09:00:00Z'
+          description: 'When the task was created'
         updated_at:
           type: string
           format: date-time
-          example: "2024-01-15T10:30:00Z"
-          description: "When the task was last updated"
+          example: '2024-01-15T10:30:00Z'
+          description: 'When the task was last updated'
       required:
         - task_id
         - user_id
@@ -137,63 +137,63 @@ components:
       properties:
         title:
           type: string
-          example: "Complete project documentation"
-          description: "Task title"
+          example: 'Complete project documentation'
+          description: 'Task title'
         estimate:
           type: number
           minimum: 0
           example: 4.5
-          description: "Estimated time to complete (in hours)"
+          description: 'Estimated time to complete (in hours)'
         status:
           type: string
           enum: [To do, In Progress, Done]
-          example: "To do"
-          description: "Initial status of the task"
+          example: 'To do'
+          description: 'Initial status of the task'
         description:
           type: string
-          example: "Write comprehensive API documentation"
-          description: "Detailed description of the task"
+          example: 'Write comprehensive API documentation'
+          description: 'Detailed description of the task'
         completed_at:
           type: string
           format: date-time
-          example: "2024-01-15T10:30:00Z"
-          description: "When the task was completed (optional)"
+          example: '2024-01-15T10:30:00Z'
+          description: 'When the task was completed (optional)'
         loggedtime:
           type: number
           minimum: 0
           example: 0
-          description: "Initial logged time (optional, defaults to 0)"
+          description: 'Initial logged time (optional, defaults to 0)'
     TaskUpdate:
       type: object
       properties:
         title:
           type: string
-          example: "Updated task title"
-          description: "New task title"
+          example: 'Updated task title'
+          description: 'New task title'
         description:
           type: string
-          example: "Updated description"
-          description: "New task description"
+          example: 'Updated description'
+          description: 'New task description'
         estimate:
           type: number
           minimum: 0
           example: 3.5
-          description: "Updated time estimate (in hours)"
+          description: 'Updated time estimate (in hours)'
         status:
           type: string
           enum: [To do, In Progress, Done]
-          example: "In Progress"
-          description: "Updated task status"
+          example: 'In Progress'
+          description: 'Updated task status'
         completed_at:
           type: string
           format: date-time
-          example: "2024-01-15T10:30:00Z"
-          description: "When the task was completed"
+          example: '2024-01-15T10:30:00Z'
+          description: 'When the task was completed'
         loggedtime:
           type: number
           minimum: 0
           example: 1.5
-          description: "Updated total logged time (in hours)"
+          description: 'Updated total logged time (in hours)'
     TimeLog:
       type: object
       required:
@@ -203,14 +203,14 @@ components:
           type: number
           minimum: 0
           example: 1.5
-          description: "Time to add to the task (in hours)"
+          description: 'Time to add to the task (in hours)'
     Error:
       type: object
       properties:
         error:
           type: string
-          example: "Validation error"
-          description: "Error message"
+          example: 'Validation error'
+          description: 'Error message'
         errors:
           type: array
           items:
@@ -218,21 +218,21 @@ components:
             properties:
               msg:
                 type: string
-                example: "Invalid email format"
+                example: 'Invalid email format'
               param:
                 type: string
-                example: "email"
+                example: 'email'
               location:
                 type: string
-                example: "body"
-          description: "Detailed validation errors (when applicable)"
+                example: 'body'
+          description: 'Detailed validation errors (when applicable)'
     SuccessMessage:
       type: object
       properties:
         message:
           type: string
-          example: "User created"
-          description: "Success message"
+          example: 'User created'
+          description: 'Success message'
 
 paths:
   /health:
@@ -251,14 +251,14 @@ paths:
                 properties:
                   status:
                     type: string
-                    example: "OK"
+                    example: 'OK'
                   timestamp:
                     type: string
                     format: date-time
-                    example: "2024-01-15T10:30:00Z"
+                    example: '2024-01-15T10:30:00Z'
                   environment:
                     type: string
-                    example: "development"
+                    example: 'development'
 
   /api/auth/signup:
     post:
@@ -287,12 +287,12 @@ paths:
                 $ref: '#/components/schemas/Error'
               example:
                 errors:
-                  - msg: "Invalid email format"
-                    param: "email"
-                    location: "body"
-                  - msg: "Password must be at least 6 characters"
-                    param: "password"
-                    location: "body"
+                  - msg: 'Invalid email format'
+                    param: 'email'
+                    location: 'body'
+                  - msg: 'Password must be at least 6 characters'
+                    param: 'password'
+                    location: 'body'
         '409':
           description: Email already registered
           content:
@@ -300,7 +300,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
               example:
-                error: "Email already registered"
+                error: 'Email already registered'
         '500':
           description: Internal server error
           content:
@@ -340,7 +340,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
               example:
-                error: "Invalid credentials"
+                error: 'Invalid credentials'
         '500':
           description: Internal server error
           content:
@@ -452,7 +452,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
               example:
-                error: "Task not found or not authorized"
+                error: 'Task not found or not authorized'
         '500':
           description: Internal server error
           content:
@@ -580,5 +580,4 @@ paths:
           description: Validation error
           content:
             application/json:
-              schema:
-                <span class="ml-2" /><span class="inline-block w-3 h-3 rounded-full bg-neutral-a12 align-middle mb-[0.1rem]" />
+              schema: <span class="ml-2" /><span class="inline-block w-3 h-3 rounded-full bg-neutral-a12 align-middle mb-[0.1rem]" />

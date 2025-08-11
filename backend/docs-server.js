@@ -7,19 +7,16 @@ const cors = require('cors');
 const app = express();
 const PORT = 3001; // law hasha8al 3ala nafs elserver kan mawdo3 kbeer elsara7a fa keda ashal
 
-
 const swaggerDocument = YAML.load(path.join(__dirname, 'api-spec.yaml'));
-
 
 swaggerDocument.servers = [
   {
     url: 'http://localhost:3000',
-    description: 'Main API Server'
-  }
+    description: 'Main API Server',
+  },
 ];
 
 app.use(cors());
-
 
 const swaggerOptions = {
   explorer: true,
@@ -29,7 +26,7 @@ const swaggerOptions = {
     showRequestHeaders: true,
   },
   customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: "Task Management API Documentation"
+  customSiteTitle: 'Task Management API Documentation',
 };
 
 app.use('/', swaggerUi.serve, swaggerUi.setup(swaggerDocument, swaggerOptions));
