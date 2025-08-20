@@ -1,0 +1,583 @@
+openapi: 3.0.0
+info:
+  title: Task Management API
+  version: 1.0.0
+  description: API for managing tasks and user authentication
+
+servers:
+  - url: http://localhost:3000
+    description: Development server
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    User:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          example: 1
+          description: 'Unique identifier for the user'
+        email:
+          type: string
+          format: email
+          example: 'user@example.com'
+          description: "User's email address"
+        password:
+          type: string
+          format: password
+          example: 'password123'
+          description: "User's password (hashed)"
+      required:
+        - user_id
+        - email
+        - password
+    UserSignup:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: 'user@example.com'
+          description: "User's email address"
+        password:
+          type: string
+          minLength: 6
+          example: 'password123'
+          description: "User's password (minimum 6 characters)"
+    UserLogin:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: 'user@example.com'
+          description: "User's email address"
+        password:
+          type: string
+          example: 'password123'
+          description: "User's password"
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+          description: 'JWT token for authentication (expires in 1 hour)'
+    Task:
+      type: object
+      properties:
+        task_id:
+          type: integer
+          example: 1
+          description: 'Unique identifier for the task'
+        user_id:
+          type: integer
+          example: 1
+          description: 'ID of the user who owns this task'
+        title:
+          type: string
+          example: 'Complete project documentation'
+          description: 'Task title'
+        description:
+          type: string
+          example: 'Write comprehensive API documentation'
+          description: 'Detailed description of the task'
+        estimate:
+          type: number
+          example: 4.5
+          description: 'Estimated time to complete (in hours)'
+        status:
+          type: string
+          enum: [To do, In Progress, Done]
+          example: 'In Progress'
+          description: 'Current status of the task'
+        completed_at:
+          type: string
+          format: date-time
+          example: '2024-01-15T10:30:00Z'
+          description: 'When the task was completed (null if not completed)'
+          nullable: true
+        loggedtime:
+          type: number
+          example: 2.5
+          description: 'Total time logged on this task (in hours)'
+        created_at:
+          type: string
+          format: date-time
+          example: '2024-01-15T09:00:00Z'
+          description: 'When the task was created'
+        updated_at:
+          type: string
+          format: date-time
+          example: '2024-01-15T10:30:00Z'
+          description: 'When the task was last updated'
+      required:
+        - task_id
+        - user_id
+        - title
+        - estimate
+        - status
+    TaskCreate:
+      type: object
+      required:
+        - title
+        - estimate
+        - status
+      properties:
+        title:
+          type: string
+          example: 'Complete project documentation'
+          description: 'Task title'
+        estimate:
+          type: number
+          minimum: 0
+          example: 4.5
+          description: 'Estimated time to complete (in hours)'
+        status:
+          type: string
+          enum: [To do, In Progress, Done]
+          example: 'To do'
+          description: 'Initial status of the task'
+        description:
+          type: string
+          example: 'Write comprehensive API documentation'
+          description: 'Detailed description of the task'
+        completed_at:
+          type: string
+          format: date-time
+          example: '2024-01-15T10:30:00Z'
+          description: 'When the task was completed (optional)'
+        loggedtime:
+          type: number
+          minimum: 0
+          example: 0
+          description: 'Initial logged time (optional, defaults to 0)'
+    TaskUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+          example: 'Updated task title'
+          description: 'New task title'
+        description:
+          type: string
+          example: 'Updated description'
+          description: 'New task description'
+        estimate:
+          type: number
+          minimum: 0
+          example: 3.5
+          description: 'Updated time estimate (in hours)'
+        status:
+          type: string
+          enum: [To do, In Progress, Done]
+          example: 'In Progress'
+          description: 'Updated task status'
+        completed_at:
+          type: string
+          format: date-time
+          example: '2024-01-15T10:30:00Z'
+          description: 'When the task was completed'
+        loggedtime:
+          type: number
+          minimum: 0
+          example: 1.5
+          description: 'Updated total logged time (in hours)'
+    TimeLog:
+      type: object
+      required:
+        - logged_time
+      properties:
+        logged_time:
+          type: number
+          minimum: 0
+          example: 1.5
+          description: 'Time to add to the task (in hours)'
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: 'Validation error'
+          description: 'Error message'
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              msg:
+                type: string
+                example: 'Invalid email format'
+              param:
+                type: string
+                example: 'email'
+              location:
+                type: string
+                example: 'body'
+          description: 'Detailed validation errors (when applicable)'
+    SuccessMessage:
+      type: object
+      properties:
+        message:
+          type: string
+          example: 'User created'
+          description: 'Success message'
+
+paths:
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Health check endpoint
+      description: Check if the server is running and healthy
+      responses:
+        '200':
+          description: Server is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: 'OK'
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: '2024-01-15T10:30:00Z'
+                  environment:
+                    type: string
+                    example: 'development'
+
+  /api/auth/signup:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new user
+      description: Create a new user account with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserSignup'
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                errors:
+                  - msg: 'Invalid email format'
+                    param: 'email'
+                    location: 'body'
+                  - msg: 'Password must be at least 6 characters'
+                    param: 'password'
+                    location: 'body'
+        '409':
+          description: Email already registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: 'Email already registered'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Login user
+      description: Authenticate user and receive JWT token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLogin'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: 'Invalid credentials'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/tasks:
+    get:
+      tags:
+        - Tasks
+      summary: Get all user tasks
+      description: Retrieve all tasks belonging to the authenticated user
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+        '401':
+          description: Unauthorized - Invalid or missing token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      tags:
+        - Tasks
+      summary: Create a new task
+      description: Create a new task for the authenticated user
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskCreate'
+      responses:
+        '201':
+          description: Task created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized - Invalid or missing token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/tasks/{id}:
+    get:
+      tags:
+        - Tasks
+      summary: Get task by ID
+      description: Retrieve a specific task by its ID (must belong to authenticated user)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Task ID
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          description: Task details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '401':
+          description: Unauthorized - Invalid or missing token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Task not found or not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: 'Task not found or not authorized'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      tags:
+        - Tasks
+      summary: Update task
+      description: Update an existing task (must belong to authenticated user)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Task ID
+          schema:
+            type: integer
+          example: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskUpdate'
+      responses:
+        '200':
+          description: Task updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized - Invalid or missing token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Task not found or not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - Tasks
+      summary: Delete task
+      description: Delete a task (must belong to authenticated user)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Task ID
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '204':
+          description: Task deleted successfully
+        '401':
+          description: Unauthorized - Invalid or missing token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Task not found or not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/tasks/{id}/time:
+    patch:
+      tags:
+        - Tasks
+      summary: Log time to a task
+      description: Add logged time to an existing task (must belong to authenticated user)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Task ID
+          schema:
+            type: integer
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TimeLog'
+      responses:
+        '200':
+          description: Time logged successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema: <span class="ml-2" /><span class="inline-block w-3 h-3 rounded-full bg-neutral-a12 align-middle mb-[0.1rem]" />
