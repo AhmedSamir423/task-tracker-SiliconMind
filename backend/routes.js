@@ -2,7 +2,7 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { User, Task } = require('../database/models');
+const { User, Task } = require('./database/models'); // Changed from ../database/models
 const { logger } = require('./logger');
 const { authenticateToken } = require('./middleware/auth');
 

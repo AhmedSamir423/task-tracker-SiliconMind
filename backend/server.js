@@ -1,40 +1,54 @@
 const express = require('express');
 const dotenv = require('dotenv');
-const models = require('../database/models'); // Re-add this import
+
+// Load .env only in non-production environments
+if (process.env.NODE_ENV !== 'production') {
+  dotenv.config({ path: '../root.env' });
+}
+
+const env = require('./config/env');
+
+const models = require('./database/models');
 const { logger, morganMiddleware } = require('./logger');
 const routes = require('./routes');
 const cors = require('cors');
 
-dotenv.config({ path: '../root.env' });
-
 models.sequelize
   .authenticate()
-  .then(() => logger.info('Database connected'))
+  .then(() => {
+    logger.info('Database connected successfully to existing local database');
+  })
   .catch((err) => logger.error('Database connection failed:', err));
+
 const app = express();
 
 // CORS configuration
 const corsOptions = {
-  origin: 'http://localhost:5173', // Allow your frontend origin
-  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'], // Allowed methods
-  allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
-  credentials: true, // Allow cookies/auth credentials if needed
-  optionsSuccessStatus: 204, // Return 204 for OPTIONS preflight requests
+  origin:
+    env.NODE_ENV === 'production'
+      ? [process.env.FRONTEND_URL || 'http://localhost:80', 'http://localhost']
+      : ['http://localhost:5173', 'http://localhost:3000'],
+  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  optionsSuccessStatus: 204,
 };
 
-// Apply CORS middleware before other middleware
 app.use(cors(corsOptions));
-
-// Parse JSON bodies
 app.use(express.json());
-
-// HTTP request logging
 app.use(morganMiddleware);
 
-// Use the routes
+// Health check route
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'OK',
+    timestamp: new Date().toISOString(),
+    environment: env.NODE_ENV,
+  });
+});
+
 app.use('/', routes);
 
-const PORT = 3000;
-app.listen(PORT, () => {
-  logger.info(`Server running on port ${PORT}`);
+app.listen(env.PORT, '0.0.0.0', () => {
+  logger.info(`Server running on port ${env.PORT} in ${env.NODE_ENV} mode`);
 });
